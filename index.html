@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homelab TwisterLab — Infrastructure distribuée 3 nœuds</title>
+<meta name="description" content="Homelab de 3 machines : Windows Server 2025 (Active Directory, DNS, DHCP), Ubuntu 24.04 (18 conteneurs Docker, Prometheus/Grafana), orchestration pair-à-pair vérifiée par SHA-256.">
+<meta property="og:title" content="Homelab TwisterLab — Infrastructure distribuée">
+<meta property="og:description" content="3 nœuds hétérogènes, 18 conteneurs Docker, 1 contrôleur de domaine. Documenté par mesure directe.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#020617; --card:#0b1220; --border:#1e293b; --fg:#e2e8f0;
+    --muted:#94a3b8; --dim:#64748b;
+    --cyan:#22d3ee; --emerald:#34d399; --violet:#a78bfa; --amber:#fbbf24;
+  }
+  body{font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--fg);
+       padding:0;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1340px;margin:0 auto;padding:0 24px}
+  header{padding:64px 0 40px;border-bottom:1px solid var(--border);
+         background:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(34,211,238,.10),transparent)}
+  .tag{display:inline-block;font-size:11px;color:var(--cyan);border:1px solid #164e63;
+       border-radius:999px;padding:4px 12px;margin-bottom:20px;letter-spacing:.5px}
+  h1{font-size:clamp(26px,4vw,42px);font-weight:700;letter-spacing:-1px;line-height:1.15;margin-bottom:16px}
+  h1 span{color:var(--cyan)}
+  .lead{font-size:15px;color:var(--muted);max-width:820px;font-weight:300}
+  .lead b{color:var(--fg);font-weight:500}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:36px}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+  .kpi .n{font-size:28px;font-weight:700;color:var(--cyan);line-height:1}
+  .kpi .l{font-size:11px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.5px}
+  section{padding:48px 0;border-bottom:1px solid var(--border)}
+  h2{font-size:20px;font-weight:650;margin-bottom:8px;letter-spacing:-.3px}
+  .sub{font-size:12.5px;color:var(--dim);margin-bottom:24px}
+  .diagram{background:var(--card);border:1px solid var(--border);border-radius:14px;
+           padding:20px;overflow-x:auto}
+  .diagram svg{display:block;width:100%;height:auto;min-width:1180px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border)}
+  th{color:var(--cyan);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  td{color:var(--muted)} td b{color:var(--fg);font-weight:500}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:8px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:18px 20px}
+  .card h3{font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .card ul{list-style:none;font-size:12px;color:var(--muted)}
+  .card li{margin-bottom:7px;padding-left:14px;position:relative}
+  .card li:before{content:"▸";position:absolute;left:0;color:var(--cyan)}
+  .card li b{color:var(--fg);font-weight:500}
+  .quote{border-left:3px solid var(--amber);padding:14px 20px;background:rgba(251,191,36,.05);
+         border-radius:0 8px 8px 0;font-size:13.5px;color:var(--fg);margin:20px 0}
+  .quote em{color:var(--amber);font-style:normal;font-weight:600}
+  .links{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--fg);
+       text-decoration:none;border:1px solid var(--border);background:var(--card);
+       border-radius:8px;padding:11px 18px;transition:.15s}
+  .btn:hover{border-color:var(--cyan);color:var(--cyan);transform:translateY(-1px)}
+  footer{padding:36px 0 56px;font-size:11.5px;color:var(--dim);text-align:center}
+  footer a{color:var(--cyan);text-decoration:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="tag">HOMELAB · INFRASTRUCTURE DISTRIBUÉE</div>
+    <h1>Trois machines hétérogènes.<br>Un domaine Active Directory réel.<br><span>Une orchestration vérifiée par empreinte.</span></h1>
+    <p class="lead">
+      Ce homelab répond à une question d'ingénierie : <b>comment faire coopérer plusieurs
+      machines de façon fiable</b>, sans architecture maître/esclave, et sans jamais croire
+      un exécutant sur parole. Chaque décision documentée ici résulte d'une <b>mesure</b>,
+      pas d'une intuition — y compris les échecs.
+    </p>
+    <div class="kpis">
+      <div class="kpi"><div class="n">3</div><div class="l">Nœuds</div></div>
+      <div class="kpi"><div class="n">18</div><div class="l">Conteneurs</div></div>
+      <div class="kpi"><div class="n">1</div><div class="l">Contrôleur de domaine</div></div>
+      <div class="kpi"><div class="n">2,3 To</div><div class="l">Stockage</div></div>
+      <div class="kpi"><div class="n">9</div><div class="l">Services supervisés</div></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>Architecture</h2>
+    <div class="sub">Trois systèmes d'exploitation, deux plans réseau, une seule règle de confiance.</div>
+    <div class="diagram">
+<svg viewBox="0 0 1300 880" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+      <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+        </pattern>
+        <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 z" fill="#64748b"/>
+        </marker>
+        <marker id="arrow-cyan" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 z" fill="#22d3ee"/>
+        </marker>
+        <marker id="arrow-rose" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 z" fill="#fb7185"/>
+        </marker>
+      </defs>
+
+      <rect width="1300" height="880" fill="url(#grid)"/>
+
+      <!-- ================= CONNEXIONS (dessous) ================= -->
+      <!-- Core <-> Edge : peer api_server -->
+      <path d="M 400 200 L 470 200" stroke="#22d3ee" stroke-width="1.6" marker-end="url(#arrow-cyan)" marker-start="url(#arrow-cyan)"/>
+      <text x="435" y="190" fill="#22d3ee" font-size="9" text-anchor="middle">peer:8642</text>
+      <!-- Edge <-> DC-DELL : peer api_server -->
+      <path d="M 970 200 L 1040 200" stroke="#22d3ee" stroke-width="1.6" marker-end="url(#arrow-cyan)" marker-start="url(#arrow-cyan)"/>
+      <text x="1005" y="190" fill="#22d3ee" font-size="9" text-anchor="middle">peer:8642</text>
+      <!-- Core -> DC-DELL via WinRM -->
+      <path d="M 280 330 Q 280 400 620 430 T 1090 400" stroke="#fb7185" stroke-width="1.3" stroke-dasharray="5,4" fill="none" marker-end="url(#arrow-rose)"/>
+      <text x="700" y="425" fill="#fb7185" font-size="9" text-anchor="middle">WinRM / Kerberos (dc-dell.twisterlab.local)</text>
+
+      <!-- ================= CORE ================= -->
+      <rect x="60" y="70" width="340" height="260" rx="10" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5"/>
+      <rect x="60" y="70" width="340" height="260" rx="10" fill="rgba(8,51,68,0.40)" stroke="none"/>
+      <text x="80" y="96" fill="#22d3ee" font-size="13" font-weight="700">◆ CORE</text>
+      <text x="80" y="113" fill="#67e8f9" font-size="9.5">Orchestrateur Hermes</text>
+
+      <rect x="76" y="126" width="308" height="1" fill="#164e63"/>
+
+      <text x="80" y="146" fill="#a5f3fc" font-size="9.5" font-weight="600">Windows 11 Pro Insider</text>
+      <text x="80" y="162" fill="#94a3b8" font-size="9">build 26340 · 64-bit</text>
+      <text x="80" y="182" fill="#a5f3fc" font-size="9.5" font-weight="600">Intel Xeon E3-1225 v5</text>
+      <text x="80" y="197" fill="#94a3b8" font-size="9">4 cœurs / 4 threads @ 3.30 GHz</text>
+      <text x="80" y="217" fill="#a5f3fc" font-size="9.5" font-weight="600">32 Go RAM</text>
+      <text x="80" y="232" fill="#94a3b8" font-size="9">31,9 Go · 3,8 Go libres</text>
+      <text x="80" y="252" fill="#a5f3fc" font-size="9.5" font-weight="600">NVIDIA RTX 3060 (12 Go)</text>
+      <text x="80" y="267" fill="#94a3b8" font-size="9">+ Intel HD P530 · driver 32.0.16.1692</text>
+      <text x="80" y="287" fill="#a5f3fc" font-size="9.5" font-weight="600">Stockage 2,3 To</text>
+      <text x="80" y="302" fill="#94a3b8" font-size="9">C: 297G · D: 298G · F: 932G · H: 476G · I: 297G</text>
+      <text x="80" y="320" fill="#22d3ee" font-size="8.5">LAN 192.168.0.12 · TS 100.107.136.93</text>
+
+      <!-- ================= EDGE ================= -->
+      <rect x="470" y="70" width="500" height="260" rx="10" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+      <rect x="470" y="70" width="500" height="260" rx="10" fill="rgba(6,78,59,0.40)" stroke="none"/>
+      <text x="490" y="96" fill="#34d399" font-size="13" font-weight="700">▲ EDGE</text>
+      <text x="490" y="113" fill="#6ee7b7" font-size="9.5">Worker builds Linux + services conteneurisés</text>
+
+      <rect x="486" y="126" width="468" height="1" fill="#065f46"/>
+
+      <text x="490" y="146" fill="#a7f3d0" font-size="9.5" font-weight="600">Ubuntu 24.04.5 LTS</text>
+      <text x="490" y="161" fill="#94a3b8" font-size="9">kernel 6.8.0-142 · uptime 9 j 15 h</text>
+      <text x="490" y="181" fill="#a7f3d0" font-size="9.5" font-weight="600">Intel Core i5-6600K</text>
+      <text x="490" y="196" fill="#94a3b8" font-size="9">4 cœurs / 4 threads @ 3.50 GHz</text>
+      <text x="490" y="216" fill="#a7f3d0" font-size="9.5" font-weight="600">15 Go RAM</text>
+      <text x="490" y="231" fill="#94a3b8" font-size="9">7,7 Go disponibles</text>
+      <text x="490" y="251" fill="#a7f3d0" font-size="9.5" font-weight="600">NVIDIA GTX 1050 (2 Go)</text>
+      <text x="490" y="266" fill="#94a3b8" font-size="9">driver 580.178.04 · pas de LLM local (VRAM insuffisante)</text>
+      <text x="490" y="286" fill="#34d399" font-size="8.5">LAN 192.168.0.30 · TS 100.112.255.75 · 47 Go libres</text>
+
+      <!-- 18 conteneurs -->
+      <text x="490" y="306" fill="#6ee7b7" font-size="9" font-weight="600">18 conteneurs Docker :</text>
+      <g font-size="7.5" fill="#cbd5e1">
+        <rect x="488" y="313" width="52" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="514" y="323" text-anchor="middle">forgejo</text>
+        <rect x="545" y="313" width="62" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="576" y="323" text-anchor="middle">forgejo-db</text>
+        <rect x="612" y="313" width="72" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="648" y="323" text-anchor="middle">prometheus</text>
+        <rect x="689" y="313" width="58" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="718" y="323" text-anchor="middle">grafana</text>
+        <rect x="752" y="313" width="80" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="792" y="323" text-anchor="middle">alertmanager</text>
+        <rect x="837" y="313" width="86" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="880" y="323" text-anchor="middle">node-exporter</text>
+
+        <rect x="488" y="331" width="40" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="508" y="341" text-anchor="middle">n8n</text>
+        <rect x="533" y="331" width="72" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="569" y="341" text-anchor="middle">n8n-postgres</text>
+        <rect x="610" y="331" width="62" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="641" y="341" text-anchor="middle">n8n-redis</text>
+        <rect x="677" y="331" width="66" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="710" y="341" text-anchor="middle">directus</text>
+        <rect x="748" y="331" width="60" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="778" y="341" text-anchor="middle">searxng</text>
+        <rect x="813" y="331" width="62" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="844" y="341" text-anchor="middle">registry</text>
+        <rect x="880" y="331" width="43" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="901" y="341" text-anchor="middle">itsm</text>
+
+        <rect x="488" y="349" width="86" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="531" y="359" text-anchor="middle">rustdesk-hbbs</text>
+        <rect x="579" y="349" width="86" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="622" y="359" text-anchor="middle">rustdesk-hbbr</text>
+        <rect x="670" y="349" width="92" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="716" y="359" text-anchor="middle">mcp-global-utils</text>
+        <rect x="767" y="349" width="72" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="803" y="359" text-anchor="middle">mcp-gitops</text>
+        <rect x="844" y="349" width="79" height="14" rx="3" fill="rgba(52,211,153,0.14)" stroke="#065f46" stroke-width="0.6"/><text x="883" y="359" text-anchor="middle">itsm-postgres</text>
+      </g>
+
+      <!-- ================= DC-DELL ================= -->
+      <rect x="1040" y="70" width="200" height="260" rx="10" fill="#0f172a" stroke="#a78bfa" stroke-width="1.5"/>
+      <rect x="1040" y="70" width="200" height="260" rx="10" fill="rgba(76,29,149,0.40)" stroke="none"/>
+      <text x="1058" y="96" fill="#a78bfa" font-size="13" font-weight="700">■ DC-DELL</text>
+      <text x="1058" y="113" fill="#c4b5fd" font-size="9.5">Contrôleur de domaine</text>
+
+      <rect x="1056" y="126" width="168" height="1" fill="#4c1d95"/>
+
+      <text x="1058" y="146" fill="#ddd6fe" font-size="9.5" font-weight="600">Windows Server 2025</text>
+      <text x="1058" y="161" fill="#94a3b8" font-size="9">Standard · build 29667</text>
+      <text x="1058" y="181" fill="#ddd6fe" font-size="9.5" font-weight="600">Intel Core i5-2400</text>
+      <text x="1058" y="196" fill="#94a3b8" font-size="9">4 cœurs / 4 threads @ 3.10 GHz</text>
+      <text x="1058" y="216" fill="#ddd6fe" font-size="9.5" font-weight="600">8 Go RAM</text>
+      <text x="1058" y="231" fill="#94a3b8" font-size="9">1,8 Go libres → 1 tâche à la fois</text>
+      <text x="1058" y="251" fill="#ddd6fe" font-size="9.5" font-weight="600">Disque C: 465 Go</text>
+      <text x="1058" y="266" fill="#94a3b8" font-size="9">418 Go libres</text>
+
+      <text x="1058" y="288" fill="#c4b5fd" font-size="8.5">twisterlab.local</text>
+      <text x="1058" y="302" fill="#c4b5fd" font-size="8.5">PDC (DomainRole=5)</text>
+
+      <g font-size="7.5" fill="#e9d5ff">
+        <rect x="1056" y="310" width="46" height="14" rx="3" fill="rgba(167,139,250,0.16)" stroke="#4c1d95" stroke-width="0.6"/><text x="1079" y="320" text-anchor="middle">AD-DS</text>
+        <rect x="1106" y="310" width="40" height="14" rx="3" fill="rgba(167,139,250,0.16)" stroke="#4c1d95" stroke-width="0.6"/><text x="1126" y="320" text-anchor="middle">DNS</text>
+        <rect x="1150" y="310" width="46" height="14" rx="3" fill="rgba(167,139,250,0.16)" stroke="#4c1d95" stroke-width="0.6"/><text x="1173" y="320" text-anchor="middle">DHCP</text>
+        <rect x="1200" y="310" width="36" height="14" rx="3" fill="rgba(167,139,250,0.16)" stroke="#4c1d95" stroke-width="0.6"/><text x="1218" y="320" text-anchor="middle">GPMC</text>
+        <rect x="1056" y="328" width="58" height="14" rx="3" fill="rgba(167,139,250,0.16)" stroke="#4c1d95" stroke-width="0.6"/><text x="1085" y="338" text-anchor="middle">Hyper-V</text>
+        <rect x="1118" y="328" width="76" height="14" rx="3" fill="rgba(167,139,250,0.16)" stroke="#4c1d95" stroke-width="0.6"/><text x="1156" y="338" text-anchor="middle">File-Services</text>
+      </g>
+
+      <!-- ================= RESEAUX ================= -->
+      <!-- LAN boundary -->
+      <rect x="60" y="450" width="1180" height="150" rx="12" fill="none" stroke="#fbbf24" stroke-width="1.4" stroke-dasharray="8,4"/>
+      <text x="78" y="472" fill="#fbbf24" font-size="11" font-weight="700">LAN 192.168.0.0/24</text>
+
+      <rect x="84" y="486" width="270" height="96" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.2"/>
+      <rect x="84" y="486" width="270" height="96" rx="8" fill="rgba(120,53,15,0.30)" stroke="none"/>
+      <text x="102" y="508" fill="#fcd34d" font-size="10.5" font-weight="600">Core · 192.168.0.12</text>
+      <text x="102" y="526" fill="#94a3b8" font-size="9">api_server Hermes 8642</text>
+      <text x="102" y="542" fill="#94a3b8" font-size="9">RDP 3389 · SMB 139</text>
+      <text x="102" y="558" fill="#94a3b8" font-size="9">SSH 22 · WinRM 5357</text>
+      <text x="102" y="574" fill="#fcd34d" font-size="8.5">Orchestrateur — décide et route</text>
+
+      <rect x="374" y="486" width="330" height="96" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.2"/>
+      <rect x="374" y="486" width="330" height="96" rx="8" fill="rgba(120,53,15,0.30)" stroke="none"/>
+      <text x="392" y="508" fill="#fcd34d" font-size="10.5" font-weight="600">Edge · 192.168.0.30</text>
+      <text x="392" y="526" fill="#94a3b8" font-size="9">Forgejo 3000 (git) · SSH git 2222</text>
+      <text x="392" y="542" fill="#94a3b8" font-size="9">OpenClaw gateway 18789</text>
+      <text x="392" y="558" fill="#94a3b8" font-size="9">Prometheus 9090 · Grafana 3001 · Alertmanager 9093</text>
+      <text x="392" y="574" fill="#94a3b8" font-size="9">n8n 5678 · Directus 8055 · SearxNG 8888 · registry 5000</text>
+
+      <rect x="724" y="486" width="270" height="96" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.2"/>
+      <rect x="724" y="486" width="270" height="96" rx="8" fill="rgba(120,53,15,0.30)" stroke="none"/>
+      <text x="742" y="508" fill="#fcd34d" font-size="10.5" font-weight="600">DC-DELL · 192.168.0.100</text>
+      <text x="742" y="526" fill="#94a3b8" font-size="9">DNS · DHCP · Kerberos (AD)</text>
+      <text x="742" y="542" fill="#94a3b8" font-size="9">SMB 139/445 · RDP 3389</text>
+      <text x="742" y="558" fill="#94a3b8" font-size="9">Hyper-V · File Services</text>
+      <text x="742" y="574" fill="#fcd34d" font-size="8.5">1 tâche Hermes à la fois (RAM)</text>
+
+      <rect x="1014" y="486" width="206" height="96" rx="8" fill="#0f172a" stroke="#fbbf24" stroke-width="1.2"/>
+      <rect x="1014" y="486" width="206" height="96" rx="8" fill="rgba(120,53,15,0.30)" stroke="none"/>
+      <text x="1032" y="508" fill="#fcd34d" font-size="10.5" font-weight="600">Poste utilisateur</text>
+      <text x="1032" y="526" fill="#94a3b8" font-size="9">Accès RDP / navigateur</text>
+      <text x="1032" y="542" fill="#94a3b8" font-size="9">Supervision Grafana</text>
+      <text x="1032" y="558" fill="#94a3b8" font-size="9">Client RustDesk</text>
+      <text x="1032" y="574" fill="#94a3b8" font-size="8.5">Consomme, ne décide pas</text>
+
+      <!-- Tailscale overlay -->
+      <rect x="60" y="628" width="1180" height="120" rx="12" fill="none" stroke="#22d3ee" stroke-width="1.4" stroke-dasharray="4,4"/>
+      <text x="78" y="650" fill="#22d3ee" font-size="11" font-weight="700">Overlay Tailscale 100.64.0.0/10 — maillage chiffré (WireGuard)</text>
+
+      <rect x="84" y="664" width="330" height="64" rx="8" fill="#0f172a" stroke="#22d3ee" stroke-width="1.2"/>
+      <rect x="84" y="664" width="330" height="64" rx="8" fill="rgba(8,51,68,0.40)" stroke="none"/>
+      <text x="102" y="686" fill="#67e8f9" font-size="10" font-weight="600">api_server Hermes — pair-à-pair</text>
+      <text x="102" y="703" fill="#94a3b8" font-size="9">Chaque nœud expose 8642 sur son IP overlay.</text>
+      <text x="102" y="719" fill="#94a3b8" font-size="9">Pas de maître/esclave — pas de port unique.</text>
+
+      <rect x="434" y="664" width="330" height="64" rx="8" fill="#0f172a" stroke="#22d3ee" stroke-width="1.2"/>
+      <rect x="434" y="664" width="330" height="64" rx="8" fill="rgba(8,51,68,0.40)" stroke="none"/>
+      <text x="452" y="686" fill="#67e8f9" font-size="10" font-weight="600">Délégation</text>
+      <text x="452" y="703" fill="#94a3b8" font-size="9">hermes peer run &lt;nœud&gt; — asynchrone, durable</text>
+      <text x="452" y="719" fill="#94a3b8" font-size="9">hermes peer dm &lt;nœud&gt; — synchrone, question courte</text>
+
+      <rect x="784" y="664" width="436" height="64" rx="8" fill="#0f172a" stroke="#22d3ee" stroke-width="1.2"/>
+      <rect x="784" y="664" width="436" height="64" rx="8" fill="rgba(8,51,68,0.40)" stroke="none"/>
+      <text x="802" y="686" fill="#67e8f9" font-size="10" font-weight="600">Modèles LLM — distants (provider nous)</text>
+      <text x="802" y="703" fill="#94a3b8" font-size="9">Core : poolside/laguna-s-2.1 · Edge : meituan/longcat-2.5 · DC-DELL : worker</text>
+      <text x="802" y="719" fill="#94a3b8" font-size="9">Aucun LLM local — les GPU ne peuvent pas servir de modèle viable</text>
+
+      <!-- Legend -->
+      <g transform="translate(60, 772)">
+        <text x="0" y="0" fill="#64748b" font-size="10" font-weight="600">LÉGENDE</text>
+        <rect x="0" y="12" width="16" height="11" rx="3" fill="rgba(8,51,68,0.40)" stroke="#22d3ee" stroke-width="1.1"/>
+        <text x="24" y="21" fill="#94a3b8" font-size="9.5">Orchestrateur / overlay</text>
+        <rect x="190" y="12" width="16" height="11" rx="3" fill="rgba(6,78,59,0.40)" stroke="#34d399" stroke-width="1.1"/>
+        <text x="214" y="21" fill="#94a3b8" font-size="9.5">Worker Linux + conteneurs</text>
+        <rect x="420" y="12" width="16" height="11" rx="3" fill="rgba(76,29,149,0.40)" stroke="#a78bfa" stroke-width="1.1"/>
+        <text x="444" y="21" fill="#94a3b8" font-size="9.5">Contrôleur de domaine</text>
+        <rect x="630" y="12" width="16" height="11" rx="3" fill="rgba(120,53,15,0.30)" stroke="#fbbf24" stroke-width="1.1"/>
+        <text x="654" y="21" fill="#94a3b8" font-size="9.5">Segment réseau LAN</text>
+        <line x1="820" y1="18" x2="860" y2="18" stroke="#22d3ee" stroke-width="1.6"/>
+        <text x="868" y="21" fill="#94a3b8" font-size="9.5">peer api_server 8642</text>
+        <line x1="1040" y1="18" x2="1080" y2="18" stroke="#fb7185" stroke-width="1.3" stroke-dasharray="5,4"/>
+        <text x="1088" y="21" fill="#94a3b8" font-size="9.5">WinRM / Kerberos</text>
+      </g>
+    </svg>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Topologie mesurée</h2>
+    <div class="sub">Relevé direct via CIM/PowerShell (Windows) et lscpu/free/nvidia-smi (Linux). Aucun chiffre estimé.</div>
+    <table>
+      <tr><th>Nœud</th><th>Rôle</th><th>OS</th><th>CPU</th><th>RAM</th><th>GPU</th></tr>
+      <tr><td><b>Core</b></td><td>Orchestrateur</td><td>Windows 11 Pro Insider</td><td>Xeon E3-1225 v5 · 4c/4t</td><td>32 Go</td><td>RTX 3060</td></tr>
+      <tr><td><b>Edge</b></td><td>Worker Linux + services</td><td>Ubuntu 24.04.5 LTS</td><td>i5-6600K · 4c/4t</td><td>15 Go</td><td>GTX 1050</td></tr>
+      <tr><td><b>DC-DELL</b></td><td>Contrôleur de domaine</td><td>Windows Server 2025</td><td>i5-2400 · 4c/4t</td><td>8 Go</td><td>—</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Plateforme de services — 18 conteneurs</h2>
+    <div class="sub">Le nœud Linux héberge la totalité des services applicatifs.</div>
+    <div class="cards">
+      <div class="card">
+        <h3><span class="dot" style="background:var(--emerald)"></span>Git &amp; registre</h3>
+        <ul>
+          <li><b>Forgejo</b> + PostgreSQL — git auto-hébergé</li>
+          <li><b>Registry</b> Docker privé</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span class="dot" style="background:var(--cyan)"></span>Observabilité</h3>
+        <ul>
+          <li><b>Prometheus</b> — collecte de métriques</li>
+          <li><b>Grafana</b> — tableaux de bord</li>
+          <li><b>Alertmanager</b> + node-exporter</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span class="dot" style="background:var(--violet)"></span>Automatisation &amp; apps</h3>
+        <ul>
+          <li><b>n8n</b> + PostgreSQL + Redis</li>
+          <li><b>Directus</b> — CMS headless</li>
+          <li><b>SearxNG</b> — métamoteur</li>
+          <li>Stack <b>ITSM</b></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span class="dot" style="background:var(--amber)"></span>Accès &amp; MCP</h3>
+        <ul>
+          <li><b>RustDesk</b> hbbs/hbbr — accès distant auto-hébergé</li>
+          <li><b>mcp-global-utils</b>, <b>mcp-gitops</b></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Socle Windows</h2>
+    <div class="sub">Contrôleur de domaine primaire du domaine <b>twisterlab.local</b>.</div>
+    <div class="cards">
+      <div class="card">
+        <h3><span class="dot" style="background:var(--violet)"></span>Rôles installés</h3>
+        <ul>
+          <li><b>AD-Domain-Services</b> — annuaire</li>
+          <li><b>DNS</b> + <b>DHCP</b> — nommage et adressage</li>
+          <li><b>GPMC</b> — stratégies de groupe</li>
+          <li><b>Hyper-V</b> — virtualisation</li>
+          <li><b>File Services</b> — partage</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span class="dot" style="background:var(--amber)"></span>Contrainte assumée</h3>
+        <ul>
+          <li>8 Go de RAM, ~1,5 Go libres</li>
+          <li><b>Une seule tâche à la fois</b></li>
+          <li>Contrainte outillée par un script de contrôle, pas laissée à la discipline</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Décisions d'ingénierie</h2>
+    <div class="sub">Quatre choix documentés en format ADR, chacun justifié par une mesure.</div>
+    <div class="cards">
+      <div class="card">
+        <h3><span class="dot" style="background:var(--cyan)"></span>001 — Pas de maître/esclave</h3>
+        <ul>
+          <li>Chaque nœud expose son propre service</li>
+          <li>L'orchestrateur est un <b>rôle</b>, pas un composant matériel</li>
+          <li>Aucun point de défaillance unique</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span class="dot" style="background:var(--cyan)"></span>002 — Aucun LLM local</h3>
+        <ul>
+          <li>2 Go de VRAM disponibles, modèle de 2,2 Go requis</li>
+          <li><b>&gt;120 s pour 10 tokens</b> — non viable</li>
+          <li>Retiré : un composant non viable dégrade en silence</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span class="dot" style="background:var(--cyan)"></span>003 — Le registre n'est pas le routeur</h3>
+        <ul>
+          <li>Mesuré : l'ordonnanceur exécutait en local ce qui devait partir à distance</li>
+          <li>Il ignorait les tâches destinées aux autres machines</li>
+          <li>Remplacé par un <b>routage explicite</b></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span class="dot" style="background:var(--cyan)"></span>004 — Un seul dépôt fait autorité</h3>
+        <ul>
+          <li>Trois dépôts divergents ne sont pas une source de vérité</li>
+          <li>Suppression conditionnée à une <b>migration vérifiée</b></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="quote">
+      <em>Règle de vérification —</em> un exécutant qui annonce « OK » n'est pas une preuve.
+      Chaque artefact est revérifié depuis l'orchestrateur : empreinte SHA-256 recalculée,
+      chemin absolu confirmé, taille comparée.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Documentation</h2>
+    <div class="sub">Tout est reproductible : les commandes de relevé sont incluses dans le dépôt.</div>
+    <div class="links">
+      <a class="btn" href="https://github.com/youneselfakir0/homelab-twisterlab">◆ Dépôt GitHub</a>
+      <a class="btn" href="https://github.com/youneselfakir0/homelab-twisterlab/blob/main/docs/architecture.md">Architecture détaillée</a>
+      <a class="btn" href="https://github.com/youneselfakir0/homelab-twisterlab/blob/main/docs/inventory.md">Inventaire mesuré</a>
+      <a class="btn" href="https://github.com/youneselfakir0/homelab-twisterlab/tree/main/docs/decisions">Décisions (ADR)</a>
+      <a class="btn" href="https://github.com/youneselfakir0/homelab-twisterlab/blob/main/docs/incidents/exit-75.md">Post-mortem d'incident</a>
+      <a class="btn" href="https://github.com/youneselfakir0/homelab-twisterlab/blob/main/docs/runbook.md">Runbook</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Homelab TwisterLab · 3 nœuds · données mesurées le 2026-10-06 ·
+    <a href="https://github.com/youneselfakir0/homelab-twisterlab">code source</a>
+  </div>
+</footer>
+
+</body>
+</html>
