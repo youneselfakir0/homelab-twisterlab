@@ -1,0 +1,103 @@
+{
+  "collecte": "2026-10-06",
+  "methode": "mesure directe sur chaque machine (PowerShell/CIM sur Windows, lscpu/free/nvidia-smi/docker sur Linux). Aucune deduction.",
+  "machines": {
+    "core": {
+      "nom": "Core",
+      "role": "Orchestrateur Hermes",
+      "os": "Windows 11 Pro Insider Preview",
+      "build": "10.0.26340",
+      "cpu": "Intel Xeon E3-1225 v5 @ 3.30GHz",
+      "coeurs": 4,
+      "threads": 4,
+      "ram_total_gb": 31.9,
+      "ram_libre_gb": 3.8,
+      "gpus": [
+        {"nom": "NVIDIA GeForce RTX 3060", "vram": "12 Go (wmic sous-declare 4 Go)", "driver": "32.0.16.1692"},
+        {"nom": "Intel HD Graphics P530", "vram": "1 Go", "driver": "31.0.101.2114"}
+      ],
+      "disques": [
+        {"lettre": "C:", "total_gb": 297.2, "libre_gb": 51.8},
+        {"lettre": "D:", "total_gb": 298.1, "libre_gb": 145},
+        {"lettre": "F:", "total_gb": 931.5, "libre_gb": 437.9},
+        {"lettre": "H:", "total_gb": 476, "libre_gb": 82.3},
+        {"lettre": "I:", "total_gb": 297.4, "libre_gb": 218.8}
+      ],
+      "ip_lan": "192.168.0.12",
+      "ip_tailscale": "100.107.136.93",
+      "uptime_h": 68.5,
+      "ports_ecoute": [22, 139, 3389, 5357, 8642]
+    },
+    "edge": {
+      "nom": "edgeserver",
+      "role": "Worker builds Linux + services conteneurises",
+      "os": "Ubuntu 24.04.5 LTS",
+      "kernel": "6.8.0-142-generic",
+      "cpu": "Intel Core i5-6600K @ 3.50GHz",
+      "coeurs": 4,
+      "threads": 4,
+      "ram_total_gb": 15,
+      "ram_dispo_gb": 7.7,
+      "gpu": {"nom": "NVIDIA GeForce GTX 1050", "vram_mio": 2048, "driver": "580.178.04"},
+      "disque_racine": {"total": "246G", "libre": "47G", "usage_pct": 81},
+      "uptime_jours": 9.6,
+      "ip_lan": "192.168.0.30",
+      "ip_tailscale": "100.112.255.75",
+      "conteneurs": [
+        "mcp-gitops (8081)",
+        "mcp-global-utils (8080)",
+        "forgejo (3000/2222)",
+        "forgejo-db (PostgreSQL)",
+        "n8n-standalone (5678)",
+        "n8n-postgres (5434)",
+        "n8n-redis (6381)",
+        "rustdesk-hbbr (21117)",
+        "rustdesk-hbbs (21115-21117)",
+        "alertmanager (9093)",
+        "prometheus (9090)",
+        "grafana (3001)",
+        "node-exporter",
+        "instaswap_directus (8055)",
+        "searxng (8888)",
+        "registry (5000)",
+        "itsm-redis (6380)",
+        "itsm-postgres (5433)"
+      ],
+      "nb_conteneurs": 18,
+      "ports_0_0_0_0": [13337, 139, 18789, 21115, 21116, 21117, 22, 2222, 3000, 3001, 445, 5000, 5433, 5434, 5678, 6380, 6381, 8055, 8080, 8088, 8644, 8888, 9090, 9093, 9119]
+    },
+    "dc-dell": {
+      "nom": "DC-DELL",
+      "role": "Controleur de domaine + worker infra",
+      "os": "Windows Server 2025 Standard",
+      "build": "29667",
+      "cpu": "Intel Core i5-2400 @ 3.10GHz",
+      "coeurs": 4,
+      "threads": 4,
+      "ram_total_gb": 7.9,
+      "ram_libre_gb": 1.8,
+      "disque_c": {"total_gb": 464.8, "libre_gb": 418.3},
+      "domaine": "twisterlab.local",
+      "domain_role": "5 (Primary Domain Controller)",
+      "ip_lan": "192.168.0.100",
+      "ip_tailscale": "100.70.59.28",
+      "roles_installes": ["AD-Domain-Services", "DHCP", "DNS", "FileAndStorage-Services", "File-Services", "FS-FileServer", "Hyper-V", "GPMC", "RSAT", "RSAT-AD-Tools", "RSAT-DHCP", "RSAT-DNS-Server", "Windows-Defender"]
+    }
+  },
+  "reseaux": {
+    "lan": "192.168.0.0/24",
+    "overlay_tailscale": "100.64.0.0/10",
+    "domaine_ad": "twisterlab.local"
+  },
+  "services_transverses": {
+    "api_server_hermes": "8642 sur les 3 machines (peer-to-peer, pas de maitre/esclave)",
+    "forgejo": "Edge:3000 (git self-hosted) + SSH 2222",
+    "openclaw_gateway": "Edge:18789",
+    "observabilite": "Prometheus 9090 + Grafana 3001 + Alertmanager 9093 + node-exporter (Edge)",
+    "automatisation": "n8n 5678 (Edge)",
+    "cms": "Directus 8055 (Edge)",
+    "recherche": "SearxNG 8888 (Edge)",
+    "acces_distant": "RustDesk hbbs/hbbr (Edge)",
+    "registry": "Docker registry 5000 (Edge)"
+  }
+}
