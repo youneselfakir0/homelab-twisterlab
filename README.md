@@ -155,6 +155,25 @@ Aucun chiffre n'est estimé. Les commandes exactes sont dans
 
 ---
 
+## Veille & optimisation
+
+| Script | Usage | Production |
+|---|---|---|
+| [`scripts/veille.py`](scripts/veille.py) | Veille technologique (RSS + GitHub releases) | `docs/veille/veille-YYYY-MM-DD.md` |
+| [`scripts/optimisation.py`](scripts/optimisation.py) | Rapport d'optimisation continu | `docs/optimisation/optimisation-YYYY-MM-DD.md` |
+| [`scripts/planifier.ps1`](scripts/planifier.ps1) | Exécution hebdomadaire automatisée | Tâche planifiée Windows |
+
+Configuration :
+- [`config/veille_sources.json`](config/veille_sources.json) — sources de veille
+- [`config/seuils.json`](config/seuils.json) — seuils d'alerte
+
+Automatisation :
+```powershell
+schtasks /Create /TN "TwisterLab-Veille" /TR "powershell -File C:\Users\administrator\homelab-twisterlab\scripts\planifier.ps1" /SC WEEKLY /D MON /ST 08:00
+```
+
+---
+
 ## Structure du dépôt
 
 ```
@@ -164,13 +183,26 @@ Aucun chiffre n'est estimé. Les commandes exactes sont dans
 │   └── homelab-architecture.html   # diagramme SVG autonome
 ├── docs/
 │   ├── architecture.md        # architecture détaillée
-│   ├── inventory.md           # inventaire matériel mesuré
+│   ├── inventaire-mesure.json # inventaire matériel mesuré
 │   ├── runbook.md             # commandes de relevé (reproductible)
 │   ├── decisions/             # ADR — décisions d'ingénierie
-│   └── incidents/             # analyses post-mortem
+│   ├── incidents/             # analyses post-mortem
+│   ├── veille/                # rapports de veille technologique
+│   └── optimisation/          # rapports d'optimisation continue
+├── config/
+│   ├── veille_sources.json    # sources de veille
+│   └── seuils.json            # seuils d'alerte
 ├── scripts/
 │   ├── inventory.ps1          # relevé Windows
-│   └── inventory.sh           # relevé Linux
+│   ├── inventory.sh           # relevé Linux
+│   ├── mesures.py            # module commun de mesures
+│   ├── veille.py              # veille technologique
+│   ├── optimisation.py        # optimisation continue
+│   └── planifier.ps1          # tâche planifiée hebdomadaire
+├── tests/
+│   ├── test_mesures.py        # tests du module de mesures
+│   ├── test_veille.py         # tests du script de veille
+│   └── test_optimisation.py   # tests du script d'optimisation
 └── LICENSE
 ```
 

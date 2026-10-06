@@ -1,0 +1,15 @@
+{
+  "seuils": {
+    "ram_libre_critique_gb": 2.0,
+    "ram_libre_alerte_gb": 4.0,
+    "disque_critique_pct": 90,
+    "disque_alerte_pct": 80,
+    "cpu_alerte_pct": 80,
+    "conteneur_inactif_alerte_jours": 7
+  },
+  "priorites": {
+    "critique": "Action immédiate — risque de défaillance",
+    "recommande": "Prochaine fenêtre de maintenance",
+    "opportun": "Amélioration de confort"
+  }
+}

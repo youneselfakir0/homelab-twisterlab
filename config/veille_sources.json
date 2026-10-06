@@ -1,0 +1,56 @@
+{
+  "sources": [
+    {
+      "nom": "Docker",
+      "type": "rss",
+      "url": "https://blog.docker.com/feed/",
+      "technos": ["docker", "containerd"]
+    },
+    {
+      "nom": "Prometheus",
+      "type": "rss",
+      "url": "https://prometheus.io/blog/feed.xml",
+      "technos": ["prometheus"]
+    },
+    {
+      "nom": "Grafana",
+      "type": "rss",
+      "url": "https://grafana.com/blog/index.xml",
+      "technos": ["grafana"]
+    },
+    {
+      "nom": "Forgejo",
+      "type": "github_releases",
+      "repo": "go-gitea/gitea",
+      "technos": ["forgejo", "gitea"]
+    },
+    {
+      "nom": "n8n",
+      "type": "github_releases",
+      "repo": "n8n-io/n8n",
+      "technos": ["n8n"]
+    },
+    {
+      "nom": "RustDesk",
+      "type": "github_releases",
+      "repo": "rustdesk/rustdesk",
+      "technos": ["rustdesk"]
+    },
+    {
+      "nom": "Ubuntu",
+      "type": "rss",
+      "url": "https://ubuntu.com/blog/feed",
+      "technos": ["ubuntu"]
+    },
+    {
+      "nom": "Windows Server",
+      "type": "rss",
+      "url": "https://techcommunity.microsoft.com/t5/windows-server-blog/bg-p/WindowsServerBlog",
+      "technos": ["windows-server", "active-directory"]
+    }
+  ],
+  "filtres": {
+    "mots_cles": ["security", "vulnerability", "CVE", "release", "update", "critical"],
+    "ignorer": ["deprecated", "end-of-life"]
+  }
+}

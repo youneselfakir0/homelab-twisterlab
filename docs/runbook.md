@@ -81,3 +81,46 @@ curl -s --max-time 5 -o /dev/null -w "HTTP %{http_code} en %{time_total}s\n" htt
 > **Ne jamais conclure qu'un service est arrêté parce que le port est fermé sur une
 > autre machine.** Un port peut être lié à une interface précise (loopback, overlay) ;
 > toujours tester depuis l'interface où le service doit écouter.
+
+---
+
+## Veille technologique et optimisation
+
+### Exécuter la veille
+
+```bash
+cd /c/Users/administrator/homelab-twisterlab
+python3 scripts/veille.py
+```
+
+Produit `docs/veille/veille-YYYY-MM-DD.md`.
+
+### Exécuter l'optimisation
+
+```bash
+cd /c/Users/administrator/homelab-twisterlab
+python3 scripts/optimisation.py
+```
+
+Produit `docs/optimisation/optimisation-YYYY-MM-DD.md`.
+
+### Automatisation hebdomadaire
+
+```powershell
+# Installer la tâche planifiée (lundi 08:00)
+schtasks /Create /TN "TwisterLab-Veille" /TR "powershell -File C:\Users\administrator\homelab-twisterlab\scripts\planifier.ps1" /SC WEEKLY /D MON /ST 08:00
+
+# Vérifier
+schtasks /Query /TN "TwisterLab-Veille"
+
+# Supprimer
+schtasks /Delete /TN "TwisterLab-Veille" /F
+```
+
+### Sources de veille configurables
+
+Éditer `config/veille_sources.json` pour ajouter/retirer des sources.
+
+### Seuils d'optimisation configurables
+
+Éditer `config/seuils.json` pour ajuster les seuils d'alerte.
