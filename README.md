@@ -3,7 +3,10 @@
 > **3 nœuds hétérogènes · 18 conteneurs · 1 contrôleur de domaine · orchestration pair-à-pair**
 > Infrastructure personnelle conçue, déployée et documentée par mesure directe.
 
-![Architecture](diagrams/homelab-architecture.png)
+> **Diagramme d'architecture :** [`diagrams/homelab-architecture.html`](diagrams/homelab-architecture.html)
+> *(fichier SVG autonome — ouvrir dans un navigateur)*
+>
+> Inventaire brut mesuré : [`docs/inventaire-mesure.json`](docs/inventaire-mesure.json)
 
 ---
 
