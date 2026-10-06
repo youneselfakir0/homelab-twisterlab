@@ -3,6 +3,8 @@
 > **3 nœuds hétérogènes · 18 conteneurs · 1 contrôleur de domaine · orchestration pair-à-pair**
 > Infrastructure personnelle conçue, déployée et documentée par mesure directe.
 
+### 🌐 **[Voir la vitrine en ligne →](https://youneselfakir0.github.io/homelab-twisterlab/)**
+
 > **Diagramme d'architecture :** [`diagrams/homelab-architecture.html`](diagrams/homelab-architecture.html)
 > *(fichier SVG autonome — ouvrir dans un navigateur)*
 >
