@@ -10,7 +10,7 @@
 
 | Nœud | Rôle | OS | CPU | RAM | IP LAN | IP Tailscale | Ports clés |
 |---|---|---|---|---|---|---|---|
-| **Core** | Orchestrateur | Windows 11 Pro Insider 26340 | Xeon E3-1225 v5 (4c/4t) | 32 Go (3,8 Go libres) | 192.168.0.12 | 100.107.136.93 | 22, 139, 3389, 5357, 8642 |
+| **Core** | Orchestrateur | Windows 11 Pro Insider 26340 | Xeon E3-1225 v5 (4c/4t) | 32 Go (3,8 Go libres) | 192.168.0.12 | 100.92.101.28 | 22, 139, 3389, 5357, 8642 |
 | **Edge** | Worker Linux + services | Ubuntu 24.04.5 LTS (kernel 6.8) | i5-6600K (4c/4t) | 15 Go (7,7 Go dispo) | 192.168.0.30 | 100.112.255.75 | 22, 2222, 3000, 3001, 5000, 5433, 5434, 5678, 6380, 6381, 8055, 8080, 8081, 8088, 8642, 8644, 8888, 9090, 9093, 9119, 18789, 21115-21117 |
 | **DC-DELL** | Contrôleur de domaine | Windows Server 2025 (29667) | i5-2400 (4c/4t) | 8 Go (1,8 Go libres) | 192.168.0.100 | 100.70.59.28 | 389, 3389 |
 
@@ -88,12 +88,14 @@
 | Paperclip (Tailscale) | http://100.112.255.75:3100/ | ❌ 403 | Mode authenticated/private — pas accessible via overlay |
 | Hermes Core | http://127.0.0.1:8642/health | ✅ 200 | v0.22.2 |
 | Hermes Core /v1/models | http://127.0.0.1:8642/v1/models | 🔒 401 | Sans auth (attendu) |
-| Hermes Edge | http://192.168.0.30:8642/health | ❌ TIMEOUT | Non joignable depuis Core |
+| Hermes Edge (LAN) | http://192.168.0.30:8642/health | ❌ TIMEOUT | Non joignable depuis Core via LAN |
+| Hermes Edge (Tailscale) | http://100.112.255.75:8642/health | ✅ 200 | Accessible via Tailscale (bind 0.0.0.0) |
 | OpenClaw | http://192.168.0.30:18789/ | ✅ 200 | Gateway accepte handshake |
-| OpenCode service | http://127.0.0.1:45278/api/info | 🔒 401 | v2.0.32, auth requise |
+| OpenCode service | http://127.0.0.1:45278/api/info | 🔒 401 | Sans auth (Hermes a mesuré 200 avec session) |
 | OpenCode legacy | http://127.0.0.1:41000/api/info | ❌ connexion refusée | Port périmé (attendu) |
 | Forgejo | http://192.168.0.30:3000/ | ✅ 200 | Git self-hosted |
-| Grafana | http://192.168.0.30:3001/ | ✅ 200 | |
+| Grafana | http://192.168.0.30:3001/ | 302 | Redirection login |
+| Grafana /api/health | http://192.168.0.30:3001/api/health | ✅ 200 | DB ok, v13.2.2 |
 | Prometheus | http://192.168.0.30:9090/ | (non testé) | |
 | n8n | http://192.168.0.30:5678/ | (non testé) | |
 
