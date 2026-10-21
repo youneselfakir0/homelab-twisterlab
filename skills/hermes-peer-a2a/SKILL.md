@@ -102,6 +102,10 @@ rebuttal, handle the counter-rebuttal), see the `agent-claim-verification` skill
   `C:\ProgramData\ssh\administrators_authorized_keys`, NOT in
   `~/.ssh/authorized_keys`. Also requires ACLs: only Administrators + SYSTEM with
   Read. The `~/.ssh/authorized_keys` path is ignored for admin accounts.
+- **Hermes skills on Windows live in AppData, not `~/.hermes`.** On Windows, Hermes
+  scans `AppData\Local\hermes\skills\` (the HERMES_HOME). The `~/.hermes\skills\`
+  directory may exist but is NOT scanned — a skill copied there will be silently
+  ignored. Always place skills under `AppData\Local\hermes\skills\<category>\`.
 - **A skill inside a Docker sandbox is not the host's skill.** Sandboxes mount a
   read-only scratch cache at `/root/.hermes/skills` and carry no `hermes` binary
   and no `.env`. Filesystem and network tests run from inside describe the
