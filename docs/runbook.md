@@ -196,6 +196,9 @@ docker inspect <c> --format '{{.HostConfig.NetworkMode}} {{json .HostConfig.Port
 > pas l'hôte : un « timeout » ou un « introuvable » issu de là est un artefact de
 > sandbox. Ne jamais en conclure qu'un port est fermé sur l'hôte.
 
-> **Edge : `8642/tcp DENY Anywhere` (ufw).** Le port `8642` est joignable par
-> Tailscale mais bloqué sur le LAN. Mesurer `8642` sur Edge en LAN renverra `000`
-> alors que le service écoute bien sur `0.0.0.0:8642`.
+> **Edge : `8642` est une allowlist ufw délibérée.** Default-deny (`8642/tcp DENY
+> Anywhere`) puis allows nommés pour les seuls pairs A2A : `100.92.101.28`
+> (`# hermes-a2a-core`), `100.70.59.28` (`# hermes-a2a-dc-dell`), `172.27.0.0/16`
+> (`# hermes-a2a-docker`), conteneur Paperclip. Mesurer `8642` sur Edge en LAN
+> renverra donc `000` alors que le service écoute bien sur `0.0.0.0:8642` — c'est
+> voulu. Ne pas supprimer la règle DENY sans quoi `8642` est ouvert à tout le LAN.

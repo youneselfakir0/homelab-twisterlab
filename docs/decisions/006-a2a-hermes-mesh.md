@@ -105,15 +105,27 @@ ou depuis un conteneur Docker donne trois réponses différentes pour le même p
 | 8644 | webhook | `0.0.0.0:8644` | **200** | **200** |
 | 8643 | — | aucun | aucun | aucun |
 
-**Règle de pare-feu mesurée** (`ufw status` sur Edge) :
+**Pare-feu : `8642` est une allowlist délibérée, pas un résidu.** Règles mesurées
+(`ufw status numbered` sur Edge) :
 
 ```
-8642/tcp    DENY    Anywhere
-Anywhere    ALLOW   192.168.0.0/24
+[ 6] 8642/tcp      DENY IN  Anywhere            <- default-deny
+[ 7] Anywhere      ALLOW IN 192.168.0.0/24       <- allow LAN general
+[35] 8642/tcp      ALLOW IN 100.92.101.28        # hermes-a2a-core
+[36] 8642/tcp      ALLOW IN 100.70.59.28         # hermes-a2a-dc-dell
+[37] 8642/tcp      ALLOW IN 172.27.0.0/16        # hermes-a2a-docker
+[34] 172.27.0.1 8642/tcp ALLOW IN 172.27.0.2     # paperclip-container-hermes
+[44] 8642/tcp (v6) DENY IN  Anywhere (v6)
 ```
 
-`8642` fait donc l'objet d'un **DENY explicite** : joignable par Tailscale mais
-pas par le LAN. `8644` n'a pas de règle propre et hérite de l'ALLOW LAN.
+`8642` est donc **délibérément en default-deny**, avec des allows nommés réservés
+aux seuls pairs A2A : Core (`100.92.101.28`), DC-DELL (`100.70.59.28`), le réseau
+Docker (`172.27.0.0/16`) et le conteneur Paperclip. Les commentaires `# hermes-a2a-*`
+sont la signature explicite de cette intention.
+
+Conséquence mesurée : `8642` est joignable par Tailscale mais **bloqué sur le LAN** —
+c'est le comportement voulu, pas un incident. `8644` (webhook) n'a pas de règle propre
+et hérite de l'ALLOW LAN.
 
 **Piège du conteneur sandbox.** Un agent exécuté dans le conteneur
 `nousresearch/hermes-sandbox:desktop` (`NetworkMode=bridge`, `PortBindings={}`)
