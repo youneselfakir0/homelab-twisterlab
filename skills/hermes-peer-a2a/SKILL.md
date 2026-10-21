@@ -92,6 +92,15 @@ rebuttal, handle the counter-rebuttal), see the `agent-claim-verification` skill
   the companion `ALLOW` lines before calling it a defect.
 - **Pairing links are single-use and short-lived.** A 401 "Pairing link expired or
   already used" means generate a new one; re-sending the same link never works.
+- **No shell on a node? Delegate the change to its own agent.** When SSH keys are
+  refused and the only other admin path needs credentials you do not have, the A2A
+  channel is a first-class way to *make* a change, not just to ask about one: the
+  remote agent holds the terminal and file tools you lack. Send **one mission** —
+  exact commands, a strict order, and a rule that it reports the raw output of each
+  step and stops on error rather than working around it. Ship anything it needs (a
+  skill, a script) through the shared git repo first so the mission can pull it
+  instead of you pasting content. Keep it to a handful of steps: a node with a
+  single-task budget spends it all on one long turn.
 - **Correct the remote's false claims, with proof.** A peer may misattribute
   where something lives, or report a 404 for a route that returns 200. Assert
   only what you measured, state the measurement, and separate "unverified" from
@@ -105,11 +114,17 @@ rebuttal, handle the counter-rebuttal), see the `agent-claim-verification` skill
   shell errors, then `base64 -d` on the remote side.
 - An empty/short reply can mean the turn timed out silently — retry once and
   read the exit code before concluding the channel is broken.
-- **Native git ignores MSYS paths.** On Windows, `git clone <url> /c/Users/x/repo`
-  lands in `C:/c/Users/x/repo` (git treats the MSYS path as relative to the drive),
-  so `ls` cannot see the repo while `git -C` still works — a maddening split. Always
-  pass native `C:/Users/x/repo` paths to git, and confirm with `git rev-parse
-  --show-toplevel` rather than trusting the clone's exit code.
+- **Native tools ignore MSYS paths — git is only the commonest victim.** On Windows
+  the MSYS layer translates `/c/Users/...` for bash builtins but **not** for native
+  binaries, and the conversion is disabled in some shells. A native program reads
+  `/c/Users/x` as a *relative* path from the current drive and creates `C:/c/Users/x`
+  — invisible to `ls`, yet still working for `git -C`. Always pass native
+  `C:/Users/x/...` paths to native tools (`git`, `curl`, `python`, `node`), and
+  confirm with `git rev-parse --show-toplevel` rather than trusting an exit code.
+  Three concrete bites: `git clone <url> /c/Users/x/repo` lands in `C:/c/Users/x/repo`;
+  `curl --data-binary @/c/Users/x.json` fails with *"error encountered when reading
+  a file"* while the same call with `C:/Users/x.json` succeeds; `curl -o "$TMPDIR/o"`
+  silently writes nothing because the native binary cannot see the MSYS path.
 - **No global git identity is configured** on these nodes. `git commit` needs
   `git config user.name` / `user.email` (repo-local is fine); copy the author of an
   existing commit for consistency. Pushing works via the Windows Credential Manager
