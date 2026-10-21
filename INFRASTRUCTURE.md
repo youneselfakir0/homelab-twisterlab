@@ -19,6 +19,14 @@
 - **Overlay WireGuard (Tailscale) :** 100.64.0.0/10
 - **Domaine AD :** twisterlab.local
 
+### Accès et credentials (NE PAS OUBLIER)
+- **Domaine AD :** `twisterlab.local` — DC-DELL est le contrôleur de domaine.
+- **Core (CORE)** est membre du domaine. Le compte courant `administrator` est **ADMIN DE DOMAINE** (acces WinRM à DC-DELL avec les credentials courants).
+- **Accès admin à DC-DELL :** WinRM (Invoke-Command) fonctionne depuis Core avec les credentials courants, après `Start-Service WinRM` sur Core + `Set-Item WSMan:\localhost\Client\TrustedHosts -Value '100.70.59.28' -Force`. C'est la voie d'administration directe.
+- **Hermes home Core :** `C:\Users\administrator\AppData\Local\hermes` (HERMES_HOME). **DC-DELL :** `C:\Users\Administrator\AppData\Local\hermes`.
+- **Skills DC-DELL** vivent dans `AppData\Local\hermes\skills\` (PAS dans `~/.hermes\skills\` qui n'est pas scanné).
+- **Rôles :** Core = orchestrateur (Hermes), Edge = worker Linux + services (Paperclip, Forgejo, OpenClaw), DC-DELL = contrôleur de domaine AD + DNS/DHCP.
+
 ### Stockage Core (post-réinstallation Windows 11, 2026-10-15)
 | Disque | Taille | Libre |
 |---|---|---|

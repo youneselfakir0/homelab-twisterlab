@@ -4,6 +4,15 @@ description: "Use when messaging a Hermes peer (A2A)."
 category: autonomous-ai-agents
 ---
 
+# Contexte lab (NE PAS OUBLIER)
+
+- **Domaine AD :** `twisterlab.local` — DC-DELL est le contrôleur de domaine.
+- **Core (CORE)** est membre du domaine. Le compte courant `administrator` est **ADMIN DE DOMAINE** (acces WinRM a DC-DELL avec les credentials courants).
+- **Acces admin a DC-DELL :** WinRM (Invoke-Command) depuis Core avec credentials courants, apres `Start-Service WinRM` + `Set-Item WSMan:\localhost\Client\TrustedHosts -Value '100.70.59.28' -Force`.
+- **Roles :** Core = orchestrateur (Hermes), Edge = worker Linux + services (Paperclip, Forgejo, OpenClaw), DC-DELL = contrôleur de domaine AD + DNS/DHCP.
+- **Hermes home :** Core = `C:\Users\administrator\AppData\Local\hermes`; DC-DELL = `C:\Users\Administrator\AppData\Local\hermes`.
+- **Skills DC-DELL** vivent dans `AppData\Local\hermes\skills\` (PAS dans `~/.hermes\skills\`).
+
 # Hermes peer A2A (bot-to-bot)
 
 Cross-machine bot DM: `hermes peer` delivers into the remote agent's canonical
