@@ -35,6 +35,11 @@ a été **vérifiée point par point**. Elle est **correcte sur 10 points et fau
 > corrigée. Mesure : `http://192.168.0.30:8642/health → 000` (×3) ; Tailscale → `200`.
 > Corrigé en **❌ bloqué**. Deux nuances ajoutées en §5 : `/v1/skills` → `500` (route
 > présente, en erreur) et `/v1/runs/{id}/events` → ambigu (`404` avec un id fictif).
+>
+> **Point 3 levé (2026-10-21) :** un test avec un **vrai** `run_id` (`POST /v1/runs`
+> → `run_id`, puis `GET /v1/runs/{id}/events`) renvoie **`200` SSE** (`event:
+> message.delta`). La route est **opérationnelle** ; le `404` sur id fictif était le
+> comportement attendu. OpenCode a fourni la mesure décisive.
 
 ---
 
@@ -183,7 +188,7 @@ Mesure directe sur `http://127.0.0.1:8642/v1/capabilities` (200) :
 | POST | `/v1/responses` | ✅ |
 | **POST** | **`/v1/runs`** | ✅ |
 | GET | `/v1/runs/{run_id}` | ✅ |
-| GET | `/v1/runs/{run_id}/events` | ⚠️ `404` avec un id fictif — route vs run non distingué |
+| GET | `/v1/runs/{run_id}/events` | ✅ `200` SSE avec un **vrai** `run_id` (`event: message.delta`) |
 | POST | `/v1/runs/{run_id}/{approval,steer,stop}` | ✅ |
 | GET | `/v1/skills` | ⚠️ `500` — route présente mais en erreur |
 | GET | `/v1/toolsets`, `/api/sessions` | ✅ |
