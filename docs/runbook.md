@@ -173,3 +173,29 @@ printf '%s' "$KEY" | ssh <hote> 'hermes peer add core --url http://hote:8642 --k
 > **Vérifier la réponse contre la source de vérité.** Un agent distant répond depuis
 > son propre contexte : si le dépôt n'est pas présent chez lui, il invente des SHAs de
 > commits. Recouper avant de relayer.
+
+### Toujours préciser le point de vue de mesure
+
+Un port « ouvert » n'a de sens que relativement à qui mesure. Tester depuis l'hôte,
+depuis le LAN ou depuis un conteneur Docker donne trois réponses différentes pour le
+même port.
+
+```bash
+# point de vue HOTE (le seul qui décrit le service réel)
+ss -ltnp | grep -E ':864[0-9]'
+
+# point de vue RESEAU (dépend du pare-feu)
+curl -s -o /dev/null -w "%{http_code}\n" --max-time 6 http://192.168.0.30:8642/health
+
+# point de vue CONTENEUR (ne décrit PAS l'hôte)
+docker inspect <c> --format '{{.HostConfig.NetworkMode}} {{json .HostConfig.PortBindings}}'
+```
+
+> **Un conteneur sandbox (`NetworkMode=bridge`, `PortBindings={}`) ne publie aucun
+> port et ne monte pas le `~/.hermes` de l'hôte.** Ses tests décrivent le conteneur,
+> pas l'hôte : un « timeout » ou un « introuvable » issu de là est un artefact de
+> sandbox. Ne jamais en conclure qu'un port est fermé sur l'hôte.
+
+> **Edge : `8642/tcp DENY Anywhere` (ufw).** Le port `8642` est joignable par
+> Tailscale mais bloqué sur le LAN. Mesurer `8642` sur Edge en LAN renverra `000`
+> alors que le service écoute bien sur `0.0.0.0:8642`.

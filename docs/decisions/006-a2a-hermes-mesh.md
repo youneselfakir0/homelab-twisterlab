@@ -93,6 +93,36 @@ Core sur un historique réel.
   exigent la clé. Le transport Edge ↔ Core passe par Tailscale
   (`http://100.92.101.28:8642`), pas par le LAN.
 
+## Carte des ports — et point de vue de mesure
+
+**L'instrument compte autant que la mesure.** Un port « ouvert » ou « fermé » n'a
+de sens que relativement à un point de vue. Mesurer depuis l'hôte, depuis le LAN
+ou depuis un conteneur Docker donne trois réponses différentes pour le même port.
+
+| Port | Service | Hôte Edge (`ss -ltnp`) | LAN `192.168.0.30` | Tailscale `100.112.255.75` |
+|---|---|---|---|---|
+| 8642 | api_server (A2A) | `0.0.0.0:8642` | **000 — bloqué** | **200** |
+| 8644 | webhook | `0.0.0.0:8644` | **200** | **200** |
+| 8643 | — | aucun | aucun | aucun |
+
+**Règle de pare-feu mesurée** (`ufw status` sur Edge) :
+
+```
+8642/tcp    DENY    Anywhere
+Anywhere    ALLOW   192.168.0.0/24
+```
+
+`8642` fait donc l'objet d'un **DENY explicite** : joignable par Tailscale mais
+pas par le LAN. `8644` n'a pas de règle propre et hérite de l'ALLOW LAN.
+
+**Piège du conteneur sandbox.** Un agent exécuté dans le conteneur
+`nousresearch/hermes-sandbox:desktop` (`NetworkMode=bridge`, `PortBindings={}`)
+ne publie **aucun** port et ne monte pas le `~/.hermes` réel de l'hôte : il voit
+`/root/.hermes/skills` (bind read-only d'un dossier de cache) et n'a ni le binaire
+`hermes` ni le `.env`. Ses tests réseau et filesystem décrivent **le conteneur**,
+pas l'hôte. Tout « introuvable » ou « timeout » issu de ce conteneur est un
+artefact de sandbox, pas un état de l'hôte.
+
 ## Conséquence durable
 
 > **Un pair joignable mais non authentifié est indistinguishable d'un pair absent.
