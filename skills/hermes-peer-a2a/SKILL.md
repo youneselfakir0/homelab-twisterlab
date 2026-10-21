@@ -91,6 +91,17 @@ rebuttal, handle the counter-rebuttal), see the `agent-claim-verification` skill
   peer keeps its key in the Hermes `.env`, not in `config.yaml`. A remote agent
   that only greps `config.yaml` will report a working key as "ABSENT" — confirm
   with an authenticated request before relaying that claim.
+- **A remote agent's "OK" on a config command is not evidence of persistence.**
+  `git config --global` (or any state-changing command) reported as successful by
+  a peer may not have actually persisted — verify with a read-back (`git config
+  --global user.name`) before trusting the claim. This has happened: git identity
+  reported "set" but `git config --list` returned empty on re-check.
+- **Windows OpenSSH authorized_keys for admin users.** On Windows Server, the
+  `sshd_config` contains `Match Group administrators` → `AuthorizedKeysFile
+  __PROGRAMDATA__/ssh/administrators_authorized_keys`. So admin users' keys go in
+  `C:\ProgramData\ssh\administrators_authorized_keys`, NOT in
+  `~/.ssh/authorized_keys`. Also requires ACLs: only Administrators + SYSTEM with
+  Read. The `~/.ssh/authorized_keys` path is ignored for admin accounts.
 - **A skill inside a Docker sandbox is not the host's skill.** Sandboxes mount a
   read-only scratch cache at `/root/.hermes/skills` and carry no `hermes` binary
   and no `.env`. Filesystem and network tests run from inside describe the
