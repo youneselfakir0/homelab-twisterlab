@@ -17,6 +17,11 @@ Cause racine : l'audit a été rédigé **sans lire les ADR 001-005** et **avant
 l'ADR-006**. Il redécouvre donc l'existant et lui superpose un schéma qui
 contredit des décisions déjà actées.
 
+> **Note de révision (2026-10-21) :** la section §5 a été **corrigée** après
+> contestation d'OpenCode, qui avait raison : `POST /v1/chat/completions`
+> **existe** (`200`). Cette revue n'échappe pas à la règle qu'elle énonce —
+> un artefact se vérifie, il ne s'accepte pas aveuglément.
+
 ---
 
 ## §1 — État des lieux des machines : ✅ correct
@@ -118,17 +123,46 @@ Ce n'est pas un routeur.
 
 ---
 
-## §5 — Protocole A2A et endpoints : ❌ endpoints inventés
+## §5 — Protocole A2A et endpoints : ⚠️ partiellement faux (CORRIGÉ)
 
 L'audit documente :
 
-| Endpoint annoncé | Réalité |
+| Endpoint annoncé | Réalité (mesurée) |
 |---|---|
-| `POST /v1/tasks` | **n'existe pas** |
-| `GET /v1/tasks/{id}` | **n'existe pas** |
-| `POST /v1/chat/completions` | **n'existe pas** |
+| `POST /v1/tasks` | **n'existe pas** — `GET /v1/tasks → 404` ✅ |
+| `GET /v1/tasks/{id}` | **n'existe pas** — idem ✅ |
+| `POST /v1/chat/completions` | **existe** — voir correction ci-dessous ❌ |
 
-Le mécanisme A2A réel est `hermes peer` :
+### Correction du 2026-10-21 (après contestation d'OpenCode)
+
+La revue affirmait que `POST /v1/chat/completions` « **n'existe pas** ». **C'est
+faux**, et OpenCode a raison. Mesures :
+
+```
+GET  /v1/chat/completions  -> 405   (route existante ; GET non autorisé)
+POST /v1/chat/completions  -> 200   (streaming : chat.completion.chunk)
+GET  /v1/capabilities      -> {"features":{"chat_completions":true,"chat_completions_streaming":true}}
+GET  /v1/tasks             -> 404   (réellement absente)
+GET  /v1/runs             -> 405   (existante : mécanisme de run asynchrone)
+```
+
+Le mécanisme de soumission asynchrone est **`/v1/runs`** (utilisé par
+`hermes peer run`), pas `/v1/tasks`.
+
+**Enseignement :** un `POST` non streamé peut renvoyer `000` (timeout) non pas
+parce que la route est absente, mais parce que le serveur **sérialise par
+session** — le corps renvoyé alors :
+
+```
+event: hermes.status
+⏳ Another Hermes process is using this session; waiting for it to finish
+```
+
+**Un `000` n'est pas une preuve d'inexistence de route.** C'est exactement la
+règle n°6 appliquée à ma propre revue : une revue est un artefact à vérifier,
+pas une vérité.
+
+Le mécanisme A2A de messagerie reste `hermes peer` :
 
 ```bash
 hermes peer add <nom> --url http://hote:8642 --key <API_SERVER_KEY>
@@ -219,7 +253,9 @@ d'action sont **déjà livrées**.
 | §3.3 / §7 « Edge non joignable » | ❌ durcissement délibéré |
 | §4.1 « Ollama Local (Edge) » | ❌ Ollama est sur Core |
 | §4.2 « Hermes ne fait pas d'inférence » | ❌ faux |
-| §5 Endpoints `/v1/tasks` | ❌ inventés |
+| §5 `/v1/tasks` | ✅ inexistantes (`404`) |
+| §5 `/v1/runs` | ✅ existante (`405`) — mécanisme de run |
+| §5 `POST /v1/chat/completions` | ❌ **revue fausse, corrigée** (existe, `200` en streaming) |
 | §5.3 Config `a2a:` | ❌ schéma inexistant |
 | §6.1 Séparer Ollama | ❌ non justifié |
 | §6.1.2 / §6.2.2 Tokens A2A | ❌ déjà livré (ADR-006) |
@@ -229,8 +265,10 @@ d'action sont **déjà livrées**.
 
 ## Ce qu'il faut retenir
 
-1. **Ne pas implémenter** les endpoints `/v1/tasks` : ils n'existent pas. Le
-   mécanisme est `hermes peer`.
+1. **Ne pas implémenter** les endpoints `/v1/tasks` : ils n'existent pas (`404`).
+   Le mécanisme de run est **`/v1/runs`** (`405`) et la messagerie est
+   **`hermes peer`**. En revanche `POST /v1/chat/completions` **existe**
+   (`200`) — la revue a été corrigée sur ce point.
 2. **Ne pas ajouter** de bloc `a2a:` : la clé est `bot_peers` +
    `HERMES_PEER_<NOM>_KEY`.
 3. **Ne pas supprimer** la règle `ufw DENY 8642` : sans elle, `8642` est ouvert à
