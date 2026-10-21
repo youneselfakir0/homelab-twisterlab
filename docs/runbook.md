@@ -124,3 +124,52 @@ schtasks /Delete /TN "TwisterLab-Veille" /F
 ### Seuils d'optimisation configurables
 
 Éditer `config/seuils.json` pour ajuster les seuils d'alerte.
+
+---
+
+## Canal A2A entre nœuds Hermes
+
+Mécanisme natif `hermes peer`. L'URL du pair va dans `config.yaml` →
+`bot_peers.<nom>.url` ; la clé dans `HERMES_PEER_<NOM>_KEY` (`.env` de l'appelant).
+Détail complet : `docs/decisions/006-a2a-hermes-mesh.md`.
+
+### Enregistrer un pair (URL + clé)
+
+```bash
+hermes peer add <nom> --url http://<hote>:8642 --key <API_SERVER_KEY_DU_PAIR> --note "rôle"
+```
+
+Sans `--key`, le pair est enregistré mais reste **sans clé** — configuré et inutilisable.
+
+### Vérifier l'authentification (avant de consommer un tour d'agent)
+
+```bash
+curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+  -H "Authorization: Bearer $HERMES_PEER_<NOM>_KEY" http://<hote>:8642/v1/models
+# 200 = clé bonne · gateway_auth_error = clé absente ou mauvaise
+```
+
+### Lister les pairs
+
+```bash
+hermes peer list        # affiche [key set] ou NO KEY
+```
+
+### Envoyer un message et lire la réponse
+
+```bash
+hermes peer dm core "question"           # synchrone, un tour (max 600 s)
+hermes peer run core "travail long"      # asynchrone → run_id
+hermes peer status core <run_id>
+```
+
+### Transférer une clé sans l'exposer
+
+```bash
+KEY=$(grep -m1 '^API_SERVER_KEY=' ~/.hermes/.env | cut -d= -f2- | tr -d '\r')
+printf '%s' "$KEY" | ssh <hote> 'hermes peer add core --url http://hote:8642 --key "$(cat)"'
+```
+
+> **Vérifier la réponse contre la source de vérité.** Un agent distant répond depuis
+> son propre contexte : si le dépôt n'est pas présent chez lui, il invente des SHAs de
+> commits. Recouper avant de relayer.
