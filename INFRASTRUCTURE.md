@@ -156,4 +156,54 @@ AD-Domain-Services, DHCP, DNS, FileAndStorage-Services, File-Services, FS-FileSe
 
 ---
 
+## 9. Accès SSH (configuré 2026-10-21)
+
+### Configuration Core (`~/.ssh/config`)
+
+```
+Host edge
+    HostName 100.112.255.75
+    User twister
+    IdentityFile G:/access-keys/ssh/id_rsa_twisterlab
+    StrictHostKeyChecking accept-new
+
+Host dc-dell
+    HostName 100.70.59.28
+    User Administrator
+    IdentityFile G:/access-keys/ssh/id_rsa
+    StrictHostKeyChecking accept-new
+```
+
+### DC-DELL — OpenSSH Server
+
+| Élément | Valeur | Preuve |
+|---|---|---|
+| Service | `sshd` | `Get-Service sshd` → Running, Automatic |
+| Port | 22 (inbound) | `Get-NetFirewallRule -Name sshd` → Enabled, Inbound |
+| Auth | Clé publique (`id_rsa.pub`) | `C:\ProgramData\ssh\administrators_authorized_keys` |
+| Installation | `Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0` | Déléguée via A2A, exécutée par Hermes DC-DELL |
+
+### Tests de connectivité (preuves)
+
+| Lien | Commande | Résultat |
+|---|---|---|
+| Core → Edge | `ssh edge "echo OK-edge"` | ✅ `OK-edge` (hostname: `edgeserver.twisterlab.local`) |
+| Core → DC-DELL | `ssh dc-dell "powershell ..."` | ✅ `DC-DELL` / `twisterlab\administrator` |
+
+### A2A (messagerie agents)
+
+| Canal | Preuve |
+|---|---|
+| Core → DC-DELL | `hermes peer dm dc-dell` → `CANAL_OK Hermes Agent v0.21.5+2961.g436b904.dirty` |
+| Skill chargée DC-DELL | `hermes-peer-a2a` (local, enabled) dans `hermes skills list` |
+
+### Règle d'usage
+
+- **Agents ↔ Agents** : `hermes peer dm <node>` (A2A, port 8642) — voie canonique
+- **Admin Core → Edge** : `ssh edge` (Tailscale uniquement, port 22 bloqué en LAN par ufw)
+- **Admin Core → DC-DELL** : `ssh dc-dell` (port 22) ou WinRM (`Invoke-Command`)
+- **Copie de fichiers** : `scp fichier edge:/dest/` ou `scp fichier dc-dell:C:/dest/`
+
+---
+
 *Ce fichier est la source de vérité technique pour tous les agents. Lire avant toute action sur l'infrastructure.*
