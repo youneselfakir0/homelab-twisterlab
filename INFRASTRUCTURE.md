@@ -249,3 +249,17 @@ Host dc-dell
 ---
 
 *Ce fichier est la source de vérité technique pour tous les agents. Lire avant toute action sur l'infrastructure.*
+
+---
+
+## 11. ComfyUI (Service Local)
+
+| Élément | Valeur | Note |
+|---|---|---|
+| Root | `F:\f\ComfyUI` | Installation principale |
+| API | `127.0.0.1:8188` | Accès local uniquement |
+| Interpreter | `.venv\Scripts\python.exe` | Shim redirigeant vers Python 3.11.9 |
+| Base Python | `C:\Users\Administrator\AppData\Local\Programs\Python\Python311` | Installation système |
+| Lancement | `start_comfyui.bat` | **Doit être lancé dans une fenêtre externe** |
+
+**Note Technique :** Le shim du `.venv` force `sys.prefix` sur le venv local, rendant les 1200+ paquets installés visibles. L'appel direct à l'interpréteur système provoque des `ModuleNotFoundError`.
