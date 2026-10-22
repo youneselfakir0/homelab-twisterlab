@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - Infrastructure : Implémentation du système de documentation permanente et versionnement.
 - Documentation : Création du skill `homelab-docs` pour l'uniformisation des rapports d'incidents et du CHANGELOG.
 - Vitrine : Refonte complète de la landing page (v3) avec architecture multi-agent.
+- Mesures : Restauration des détails techniques ComfyUI via remesure directe sur machine.
 ### 🟡 Modifications (Changed)
 - Architecture : Suppression totale de Paperclip des rôles et endpoints.
 ### 🔴 Correctifs (Fixed)
