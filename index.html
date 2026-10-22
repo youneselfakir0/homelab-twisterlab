@@ -8,213 +8,239 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        :root {
+            --bg-base: #0A0A0B;
+            --bg-surface: #111113;
+            --bg-elevated: #18181B;
+            --border-hairline: #26262B;
+            --text-primary: #E5E5E5;
+            --text-secondary: #A1A1AA;
+            --text-muted: #6B6B74;
+            --accent-hermes: #7C6CF6;
+            --accent-openclaw: #38BDF8;
+            --accent-opencode: #F59E0B;
+            --accent-ok: #34D399;
+            --accent-warn: #FBBF24;
+            --accent-fail: #F87171;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-base); 
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .gradient-text { background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .border-glow { border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 0 15px rgba(56, 189, 248, 0.1); }
+        .eyebrow { 
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.08em; 
+            color: var(--text-muted);
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1px;
+            background-color: var(--border-hairline);
+            border: 1px solid var(--border-hairline);
+        }
+        .bento-item {
+            background-color: var(--bg-surface);
+            padding: 24px;
+            transition: background-color 0.2s ease;
+        }
+        .bento-item:hover {
+            background-color: var(--bg-elevated);
+        }
+        .glow-border {
+            border: 1px solid rgba(124, 108, 246, 0.3);
+            box-shadow: 0 0 15px rgba(124, 108, 246, 0.1);
+        }
+        .terminal-window {
+            background-color: #000;
+            border: 1px solid var(--border-hairline);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body class="antialiased">
 
-    <!-- HERO SECTION -->
-    <header class="relative py-24 px-6 overflow-hidden">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 opacity-20">
-            <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600 rounded-full blur-[120px]"></div>
-            <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600 rounded-full blur-[120px]"></div>
-        </div>
-
-        <div class="max-w-5xl mx-auto text-center">
-            <div class="inline-block px-4 py-1.5 mb-6 text-sm font-semibold tracking-wide text-blue-400 uppercase bg-blue-900/30 border border-blue-500/30 rounded-full">
-                Infrastructure Multi-Agent v2.0
-            </div>
-            <h1 class="text-6xl md:text-8xl font-extrabold tracking-tight mb-6">
-                Twister<span class="gradient-text">Lab</span>
+    <!-- S1. HERO -->
+    <section class="relative py-24 px-6 overflow-hidden border-b border-slate-800">
+        <div class="max-w-6xl mx-auto text-center relative z-10">
+            <div class="eyebrow mb-4">TWISTERLAB — ORCHESTRATION D'AGENTS, VÉRIFIÉE PAR SHA-256</div>
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
+                Trois machines. Zéro maître.<br>
+                <span style="color: var(--accent-hermes)">Chaque artefact est vérifié.</span>
             </h1>
-            <p class="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed mb-10">
-                Un homelab distribué où le <strong class="text-white">cerveau (Hermes)</strong> orchestre des <strong class="text-white">bras spécialisés (OpenClaw & OpenCode)</strong> sur trois nœuds hétérogènes. 
-                Zéro confiance, vérification systématique, automatisation totale.
+            <p class="text-xl text-slate-400 max-w-3xl mx-auto mb-12">
+                L'infrastructure distribuée où le cerveau orchestre des bras spécialisés sans jamais croire un exécutant sur parole.
             </p>
+            
+            <div class="max-w-2xl mx-auto terminal-window p-6 text-left mb-12 shadow-2xl">
+                <div class="flex gap-2 mb-4">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div class="mono space-y-1">
+                    <div class="flex gap-2"><span class="text-green-400">$</span> <span>hermes peer dm edge "build:core-restore"</span></div>
+                    <div class="text-slate-500">✔ artefact reçu   sha256 350a360e…52afd   4,2s</div>
+                    <div class="flex gap-2"><span class="text-green-400">$</span> <span>hermes peer dm core "verify"</span></div>
+                    <div class="text-emerald-400">✔ hash vérifié    350a360e…52afd          MATCH</div>
+                </div>
+            </div>
+
             <div class="flex justify-center gap-4">
-                <a href="https://github.com/youneselfakir0/homelab-twisterlab" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2">
-                    <i class="fab fa-github"></i> Voir le dépôt
+                <a href="https://github.com/youneselfakir0/homelab-twisterlab" class="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all flex items-center gap-2">
+                    <i class="fab fa-github"></i> Voir la preuve
                 </a>
-                <a href="#architecture" class="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all border border-slate-700">
+                <a href="#architecture" class="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg transition-all border border-slate-700">
                     Explorer l'architecture
                 </a>
             </div>
-        </div>
-    </header>
-
-    <!-- THE TRIO: AGENTS -->
-    <section class="py-20 px-6 max-w-6xl mx-auto">
-        <div class="text-center mb-16">
-            <h2 class="text-3xl font-bold mb-4">Le Triptyque d'Agents</h2>
-            <p class="text-slate-400">Une spécialisation stricte pour une efficacité maximale.</p>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-8">
-            <!-- HERMES -->
-            <div class="glass p-8 rounded-2xl border-glow relative group">
-                <div class="text-blue-400 text-4xl mb-6"><i class="fas fa-brain"></i></div>
-                <h3 class="text-2xl font-bold mb-3">Hermes</h3>
-                <div class="text-sm text-blue-300 font-bold uppercase tracking-widest mb-4">L'Orchestrateur (Le Cerveau)</div>
-                <p class="text-slate-400 leading-relaxed mb-6">
-                    Coordonne la flotte via A2A. Il gère le Kanban, distribue les tâches, agrège les preuves et valide les artefacts.
-                </p>
-                <ul class="text-sm space-y-2 text-slate-300">
-                    <li><i class="fas fa-check text-blue-500 mr-2"></i> Routing A2A peer-to-peer</li>
-                    <li><i class="fas fa-check text-blue-500 mr-2"></i> Gestion du cycle de vie Kanban</li>
-                    <li><i class="fas fa-check text-blue-500 mr-2"></i> Vérification SHA-256</li>
-                </ul>
-            </div>
-
-            <!-- OPENCLAW -->
-            <div class="glass p-8 rounded-2xl border-glow relative group">
-                <div class="text-indigo-400 text-4xl mb-6"><i class="fas fa-robot"></i></div>
-                <h3 class="text-2xl font-bold mb-3">OpenClaw</h3>
-                <div class="text-sm text-indigo-300 font-bold uppercase tracking-widest mb-4">Le Runtime (Les Bras)</div>
-                <p class="text-slate-400 leading-relaxed mb-6">
-                    L'interface avec le monde réel. Exécute des plugins, des skills et interagit avec 500+ apps via Composio.
-                </p>
-                <ul class="text-sm space-y-2 text-slate-300">
-                    <li><i class="fas fa-check text-indigo-500 mr-2"></i> Intégration Composio CLI</li>
-                    <li><i class="fas fa-check text-indigo-500 mr-2"></i> Exécution de Skills spécialisés</li>
-                    <li><i class="fas fa-check text-indigo-500 mr-2"></i> Interaction API / Webhooks</li>
-                </ul>
-            </div>
-
-            <!-- OPENCODE -->
-            <div class="glass p-8 rounded-2xl border-glow relative group">
-                <div class="text-emerald-400 text-4xl mb-6"><i class="fas fa-code"></i></div>
-                <h3 class="text-2xl font-bold mb-3">OpenCode</h3>
-                <div class="text-sm text-emerald-300 font-bold uppercase tracking-widest mb-4">Le Codeur (L'Expert)</div>
-                <p class="text-slate-400 leading-relaxed mb-6">
-                    L'agent dédié au développement. Écrit du code propre, réalise des reviews et gère les Pull Requests.
-                </p>
-                <ul class="text-sm space-y-2 text-slate-300">
-                    <li><i class="fas fa-check text-emerald-500 mr-2"></i> Génération de scripts Python/JS</li>
-                    <li><i class="fas fa-check text-emerald-500 mr-2"></i> Analyse de codebase locale</li>
-                    <li><i class="fas fa-check text-emerald-500 mr-2"></i> Automatisation GitHub API</li>
-                </ul>
+            <div class="mt-8 text-xs mono text-slate-500">
+                3 nœuds · 18 conteneurs · 0 secret en clair
             </div>
         </div>
     </section>
 
-    <!-- INFRASTRUCTURE -->
-    <section id="architecture" class="py-20 px-6 bg-slate-900/50">
+    <!-- S2. LE PROBLÈME (Bento) -->
+    <section class="py-24 px-6 max-w-6xl mx-auto">
+        <h2 class="text-3xl font-bold mb-12 text-center">L'orchestration sans preuve, c'est de la narration.</h2>
+        <div class="bento-grid">
+            <div class="bento-item col-span-12 md:col-span-4">
+                <div class="text-red-400 mb-4 text-2xl"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="font-bold mb-2">L'illusion du "OK"</div>
+                <p class="text-sm text-slate-400">Un exécuteur qui dit « OK » n'est pas une preuve. Nous exigeons l'artefact et son hash.</p>
+            </div>
+            <div class="bento-item col-span-12 md:col-span-4">
+                <div class="text-red-400 mb-4 text-2xl"><i class="fas fa-route"></i></div>
+                <div class="font-bold mb-2">Le piège du routeur auto</div>
+                <p class="text-sm text-slate-400">L'automatisation aveugle cache qui a fait quoi. Nous utilisons un routage explicite.</p>
+            </div>
+            <div class="bento-item col-span-12 md:col-span-4">
+                <div class="text-red-400 mb-4 text-2xl"><i class="fas fa-file-alt"></i></div>
+                <div class="font-bold mb-2">La doc divergente</div>
+                <p class="text-sm text-slate-400">Une doc qui ne reflète pas le réel est un mensonge. Notre source de vérité est mesurée.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- S3. LE TRIPTYQUE -->
+    <section class="py-24 px-6 bg-slate-900/30">
         <div class="max-w-6xl mx-auto">
-            <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-                <div>
-                    <h2 class="text-3xl font-bold mb-2">Topologie Réelle</h2>
-                    <p class="text-slate-400">Trois nœuds, un domaine AD, zéro confiance.</p>
+            <h2 class="text-3xl font-bold mb-16 text-center">Hermes orchestre. OpenClaw contrôle. OpenCode exécute.</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="glass p-8 rounded-xl border-t-4" style="border-color: var(--accent-hermes)">
+                    <div class="text-2xl mb-4" style="color: var(--accent-hermes)"><i class="fas fa-brain"></i></div>
+                    <h3 class="text-xl font-bold mb-4">Hermes — Le moteur</h3>
+                    <p class="text-sm text-slate-400 mb-6">Orchestration déterministe. Pas de routeur automatique : l'orchestrateur route lui-même, vers le worker juste nécessaire.</p>
+                    <div class="text-xs mono space-y-1 text-slate-500">
+                        <div>• Routing A2A peer-to-peer</div>
+                        <div>• Gestion du cycle de vie Kanban</div>
+                    </div>
                 </div>
-                <a href="https://github.com/youneselfakir0/homelab-twisterlab/blob/main/INFRASTRUCTURE.md" class="text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-2">
-                    Voir INFRASTRUCTURE.md <i class="fas fa-external-link-alt text-xs"></i>
+                <div class="glass p-8 rounded-xl border-t-4" style="border-color: var(--accent-openclaw)">
+                    <div class="text-2xl mb-4" style="color: var(--accent-openclaw)"><i class="fas fa-robot"></i></div>
+                    <h3 class="text-xl font-bold mb-4">OpenClaw — Le contrôle</h3>
+                    <p class="text-sm text-slate-400 mb-6">Control plane. Planifie, valide, rapporte. Le KANBAN est registre, pas routeur.</p>
+                    <div class="text-xs mono space-y-1 text-slate-500">
+                        <div>• Intégration Composio CLI</div>
+                        <div>• Execution de Skills spécialisés</div>
+                    </div>
+                </div>
+                <div class="glass p-8 rounded-xl border-t-4" style="border-color: var(--accent-opencode)">
+                    <div class="text-2xl mb-4" style="color: var(--accent-opencode)"><i class="fas fa-code"></i></div>
+                    <h3 class="text-xl font-bold mb-4">OpenCode — L'exécution</h3>
+                    <p class="text-sm text-slate-400 mb-6">Boucle d'inférence free-tier bridgée vers Hermes. Aucun modèle local : la GTX 1050 ne sert pas de modèle.</p>
+                    <div class="text-xs mono space-y-1 text-slate-500">
+                        <div>• Génération de scripts Python/JS</div>
+                        <div>• Automatisation GitHub API</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- S5. VÉRIFICATION -->
+    <section class="py-24 px-6 max-w-6xl mx-auto">
+        <h2 class="text-3xl font-bold mb-12 text-center">Chaque artefact est revérifié depuis l'orchestrateur.</h2>
+        <div class="terminal-window p-6 mono text-xs leading-relaxed overflow-x-auto shadow-xl">
+            <div class="flex gap-2 mb-4 opacity-50">
+                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            <div class="space-y-1">
+                <div class="flex justify-between"><span class="text-blue-400">[SHA-256]</span> <span class="text-slate-400">validate_post_reinstall_v2.ps1</span> <span class="text-white">db309180…4f483</span></div>
+                <div class="flex justify-between"><span class="text-blue-400">[SHA-256]</span> <span class="text-slate-400">restore_core_windows11.ps1</span> <span class="text-white">350a360e…52afd</span></div>
+                <div class="flex justify-between"><span class="text-blue-400">[SHA-256]</span> <span class="text-slate-400">.env (fusionné, 24 vars)</span> <span class="text-white">DA1F6D27…66F03</span></div>
+                <div class="flex justify-between"><span class="text-emerald-400">[ ISO ]</span> <span class="text-slate-400">Windows 11  8,4 Go</span> <span class="text-white">BD4307DF…A650 MATCH</span></div>
+                <div class="flex justify-between"><span class="text-emerald-400">[ ISO ]</span> <span class="text-slate-400">Ubuntu 24.04 5,9 Go</span> <span class="text-white">FAABCF33…8328 MATCH</span></div>
+                <div class="flex justify-between"><span class="text-emerald-400">[ ISO ]</span> <span class="text-slate-400">Kali 2025.3  4,3 Go</span> <span class="text-white">FCF19997…F42A MATCH</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- S6. CONTRAINTE -->
+    <section class="py-24 px-6 bg-slate-900/30">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-12 text-center">Les limites sont publiées, pas masquées.</h2>
+            <div class="overflow-hidden rounded-xl border border-slate-800">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-800 text-slate-300 uppercase text-xs mono">
+                        <tr>
+                            <th class="p-4">Nœud</th>
+                            <th class="p-4">Contrainte</th>
+                            <th class="p-4">Raison</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-4 font-bold">DC-DELL</td>
+                            <td class="p-4">1 tâche à la fois</td>
+                            <td class="p-4 text-slate-400">8 Go RAM, ~1,5 Go libres.</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-4 font-bold">Edge</td>
+                            <td class="p-4">Pas de modèle local</td>
+                            <td class="p-4 text-slate-400">GTX 1050 (2 Go VRAM) insuffisante.</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="p-4 font-bold">Réseau</td>
+                            <td class="p-4">UFW DENY 8642 (LAN)</td>
+                            <td class="p-4 text-slate-400">Durcissement volontaire, passage par overlay.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- S10. CTA -->
+    <section class="py-24 px-6 text-center">
+        <div class="max-w-3xl mx-auto p-12 glass rounded-3xl border-2 border-indigo-500/30 relative">
+            <h2 class="text-4xl font-bold mb-8">Clonez, vérifiez, n'exécutez pas.</h2>
+            <div class="terminal-window p-4 mb-8 text-left inline-block mx-auto">
+                <div class="flex gap-2 text-xs mono text-slate-400">
+                    <span class="text-green-400">$</span> <span>git clone https://github.com/youneselfakir0/homelab-twisterlab.git</span>
+                </div>
+            </div>
+            <div class="flex justify-center gap-4">
+                <a href="https://github.com/youneselfakir0/homelab-twisterlab/blob/main/INFRASTRUCTURE.md" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg transition-all border border-slate-700">
+                    Lire INFRASTRUCTURE.md
                 </a>
             </div>
-
-            <div class="grid lg:grid-cols-3 gap-6">
-                <!-- CORE -->
-                <div class="glass p-6 rounded-xl border-l-4 border-blue-500">
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-bold">Core</h3>
-                        <span class="text-xs bg-blue-900/50 text-blue-300 px-2 py-1 rounded">Orchestrateur</span>
-                    </div>
-                    <div class="mono text-xs text-slate-500 mb-4">100.92.101.28</div>
-                    <div class="space-y-3 text-sm text-slate-300">
-                        <div class="flex justify-between"><span class="text-slate-500">CPU:</span> <span class="text-white">Xeon E3-1225 v5</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">RAM:</span> <span class="text-white">32 Go</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">GPU:</span> <span class="text-white">RTX 3060 12Go</span></div>
-                    </div>
-                </div>
-                <!-- EDGE -->
-                <div class="glass p-6 rounded-xl border-l-4 border-indigo-500">
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-bold">Edge</h3>
-                        <span class="text-xs bg-indigo-900/50 text-indigo-300 px-2 py-1 rounded">Worker Linux</span>
-                    </div>
-                    <div class="mono text-xs text-slate-500 mb-4">100.112.255.75</div>
-                    <div class="space-y-3 text-sm text-slate-300">
-                        <div class="flex justify-between"><span class="text-slate-500">CPU:</span> <span class="text-white">i5-6600K</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">RAM:</span> <span class="text-white">15 Go</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">GPU:</span> <span class="text-white">GTX 1050 2Go</span></div>
-                    </div>
-                </div>
-                <!-- DC-DELL -->
-                <div class="glass p-6 rounded-xl border-l-4 border-emerald-500">
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-bold">DC-DELL</h3>
-                        <span class="text-xs bg-emerald-900/50 text-emerald-300 px-2 py-1 rounded">AD Controller</span>
-                    </div>
-                    <div class="mono text-xs text-slate-500 mb-4">100.70.59.28</div>
-                    <div class="space-y-3 text-sm text-slate-300">
-                        <div class="flex justify-between"><span class="text-slate-500">CPU:</span> <span class="text-white">i5-2400</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">RAM:</span> <span class="text-white">8 Go</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">GPU:</span> <span class="text-white">—</span></div>
-                    </div>
-                </div>
+            <div class="mt-8 text-xs mono text-slate-500">
+                Dernier commit doc : 1a83511a · 5 commits / 7 j · 0 changement infra
             </div>
         </div>
     </section>
 
-    <!-- PROOF OF CONCEPT: WORKFLOW -->
-    <section class="py-20 px-6 max-w-5xl mx-auto">
-        <div class="text-center mb-16">
-            <h2 class="text-3xl font-bold mb-4">Démonstration de Flux</h2>
-            <p class="text-slate-400">Exemple concret : <strong class="text-white">T-DISK-MONITOR</strong></p>
-        </div>
-
-        <div class="relative p-8 glass rounded-3xl border-glow">
-            <div class="grid md:grid-cols-4 gap-4 text-center">
-                <div class="p-4">
-                    <div class="text-blue-400 mb-2 text-2xl"><i class="fas fa-tasks"></i></div>
-                    <div class="font-bold text-sm">Saisie Kanban</div>
-                    <div class="text-xs text-slate-500">Core (Hermes)</div>
-                </div>
-                <div class="p-4 border-l border-slate-700">
-                    <div class="text-indigo-400 mb-2 text-2xl"><i class="fas fa-search"></i></div>
-                    <div class="font-bold text-sm">Analyse Système</div>
-                    <div class="text-xs text-slate-500">Edge (OpenClaw)</div>
-                </div>
-                <div class="p-4 border-l border-slate-700">
-                    <div class="text-emerald-400 mb-2 text-2xl"><i class="fas fa-code"></i></div>
-                    <div class="font-bold text-sm">Coding Script</div>
-                    <div class="text-xs text-slate-500">Core (OpenCode)</div>
-                </div>
-                <div class="p-4 border-l border-slate-700">
-                    <div class="text-white mb-2 text-2xl"><i class="fab fa-github"></i></div>
-                    <div class="font-bold text-sm">Push & Archive</div>
-                    <div class="text-xs text-slate-500">GitHub Repo</div>
-                </div>
-            </div>
-            <div class="mt-10 p-6 bg-black/40 rounded-xl mono text-xs text-blue-300 overflow-x-auto leading-relaxed">
-                <div class="flex gap-2"><span class="text-slate-500">[LOG]</span> <span>Core &rarr; Edge: "Analyse l'espace disque de Edge"</span></div>
-                <div class="flex gap-2"><span class="text-slate-500">[LOG]</span> <span>Edge &rarr; Core: "Disque racine : / utilisé à 81% (ALERTE)"</span></div>
-                <div class="flex gap-2"><span class="text-slate-500">[LOG]</span> <span>Core &rarr; OpenCode: "Génère script Python pour monitoring disque"</span></div>
-                <div class="flex gap-2"><span class="text-slate-500">[LOG]</span> <span>Core &rarr; GitHub: "Commit c82fc43 validé"</span></div>
-                <div class="flex gap-2 mt-2"><span class="text-emerald-400 font-bold">[SUCCESS]</span> <span>Workflow T-DISK-MONITOR terminé. Artefact validé.</span></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- GOLDEN RULE -->
-    <section class="py-20 px-6 text-center">
-        <div class="max-w-3xl mx-auto p-10 glass rounded-3xl border-2 border-blue-500/30">
-            <div class="text-blue-400 text-5xl mb-6"><i class="fas fa-shield-alt"></i></div>
-            <h2 class="text-3xl font-bold mb-6">La Règle d'Or</h2>
-            <p class="text-2xl italic font-light text-slate-300 mb-8">
-                "Un exécutant qui annonce « OK » n'est pas une preuve."
-            </p>
-            <div class="grid md:grid-cols-3 gap-4 text-sm text-slate-400">
-                <div class="p-4 bg-slate-800/50 rounded-lg border border-slate-700">SHA-256 recalculé</div>
-                <div class="p-4 bg-slate-800/50 rounded-lg border border-slate-700">Chemin absolu confirmé</div>
-                <div class="p-4 bg-slate-800/50 rounded-lg border border-slate-700">Taille comparée</div>
-            </div>
-        </div>
-    </section>
-
-    <footer class="py-12 text-center text-slate-500 text-sm">
+    <footer class="py-12 text-center text-slate-500 text-xs mono">
         <p>&copy; 2026 TwisterLab &bull; Infrastructure documentée par mesure directe</p>
     </footer>
 
