@@ -1,9 +1,13 @@
-# ADR-005 — Gouvernance Paperclip et flotte d’agents
+# ADR-005 — Gouvernance Paperclip et flotte d’agents (OBSOLÈTE)
 
-- **Statut : DÉCISION ACCEPTÉE / BASELINE VERROUILLÉE**
-- **Date : 2026-10-19**
-- **Portée :** architecture cible d’orchestration TwisterLab
-- **Nature du changement :** décision documentaire seulement ; aucune configuration d’infrastructure n’est modifiée par cet ADR.
+- **STATUT : SUPERSÉDÉ par l'architecture Hermes / OpenClaw / OpenCode**
+- **DATE DE RETRAIT : 2026-10-22**
+- **Raison :** Exclusion de Paperclip pour réduire la consommation de tokens et simplification du flux d'orchestration.
+
+L'orchestration est désormais centralisée via Hermes (Core) avec des workers Hermes sur Edge et DC-DELL, utilisant OpenClaw pour les tools et OpenCode pour le développement.
+
+---
+(Le reste du document est conservé pour archive historique)
 
 ## Contexte
 

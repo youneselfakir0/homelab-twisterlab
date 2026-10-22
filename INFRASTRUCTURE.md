@@ -162,25 +162,28 @@ AD-Domain-Services, DHCP, DNS, FileAndStorage-Services, File-Services, FS-FileSe
 
 | Machine | **Hermes** (orchestration) | **OpenClaw** (agent runtime) | **OpenCode** (coding agent) |
 |---|---|---|---|
-| **Core** (100.92.101.28) | **Orchestrateur**<br>• `api_server:8642` (bind 0.0.0.0)<br>• MCP servers: Composio (HTTP `connect.composio.dev/mcp`), Figma, PostHog<br>• A2A peers: Edge, DC-DELL<br>• Dispatch Kanban + délégation A2A | ❌ Pas installé | ❌ Pas installé |
-| **Edge** (Ubuntu, 100.112.255.75) | **Worker Hermes**<br>• `api_server:8642` (Tailscale only, ufw DENY LAN)<br>• Reçoit tâches via A2A<br>• 18 conteneurs Docker | **Runtime agents principal**<br>• Gateway: `192.168.0.30:18789` / Tailscale `100.112.255.75:18789`<br>• Plugin **Composio** installé (`.openclaw/extensions/composio/`)<br>• Composio CLI 0.5.0, connecté `youneselfafir0@gmail.com`<br>• 500+ tools via Composio (GitHub, Gmail, Slack, Notion, etc.)<br>• Skills, conversations, hooks | ❌ Pas installé |
-| **DC-DELL** (Win Server, 100.70.59.28) | **Worker Hermes**<br>• `api_server:8642`<br>• Skill `hermes-peer-a2a` chargée (enabled)<br>• 1 tâche à la fois (8 Go RAM, script `check_lock.ps1`)<br>• **Rôle principal : Contrôleur de domaine AD + DNS/DHCP** | ❌ Pas installé | ❌ Pas installé |
+| **Core** (100.92.101.28) | **Cerveau / Orchestrateur principal**<br>• `api_server:8642` (bind 0.0.0.0)<br>• Gestion Kanban, routing et partage de tâches<br>• MCP servers: Composio, Figma, PostHog<br>• A2A peers: Edge, DC-DELL | ✅ Installé | ✅ Installé |
+| **Edge** (Ubuntu, 100.112.255.75) | **Worker Hermes**<br>• `api_server:8642` (Tailscale only)<br>• Reçoit tâches via A2A<br>• 18 conteneurs Docker | ✅ **Runtime principal**<br>• Gateway: `192.168.0.30:18789`<br>• Plugin **Composio** installé + CLI 0.5.0<br>• 500+ tools (GitHub, Gmail, etc.) | ✅ Installé |
+| **DC-DELL** (Win Server, 100.70.59.28) | **Worker Hermes**<br>• `api_server:8642`<br>• Skill `hermes-peer-a2a` chargée<br>• 1 tâche à la fois (8 Go RAM) | ✅ Installé | ❌ Pas installé (Contrôleur AD) |
 
 ### Distinction fonctionnelle
 
 | Agent | Rôle | Ce qu'il **ne fait pas** |
 |---|---|---|
-| **Hermes** | Orchestration, routing A2A, Kanban dispatch, agrégation preuves | N'exécute **pas** de code, n'appelle **pas** d'outils externes |
-| **OpenClaw** | Exécution plugins/skills (Composio, Notion, etc.), conversations, hooks | Ne route **pas** vers d'autres machines, ne gère **pas** le Kanban |
+| **Hermes** | **Le Cerveau** : coordination globale, partage des tâches via Kanban, routing A2A, agrégation preuves | N'exécute **pas** de code, n'appelle **pas** d'outils externes |
+| **OpenClaw** | **Le Runtime** : exécution plugins/skills (Composio, Notion, etc.), conversations, hooks | Ne route **pas** vers d'autres machines, ne gère **pas** le Kanban |
+| **OpenCode** | **Le Codeur** : écriture code, PR, review, tests | Ne connaît **pas** le lab, ne parle **pas** A2A |
 
 ### Flux type d'exécution
 
 ```
-User → Core (Hermes orchestrateur)
+User → Core (Hermes orchestrateur + Kanban)
         │
-        ├─→ Edge (Hermes worker) → OpenClaw (exécution plugins/skills Composio)
+        ├─→ Core (Hermes + OpenClaw + OpenCode) — tâches locales
         │
-        └─→ DC-DELL (Hermes worker) → Admin AD/DNS/DHCP (WinRM, SSH)
+        ├─→ Edge (Hermes + OpenClaw + OpenCode) — plugins, coding
+        │
+        └─→ DC-DELL (Hermes + OpenClaw) — admin AD/DNS/DHCP
 ```
 
 ### Preuves d'installation Edge (Ubuntu)

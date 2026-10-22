@@ -1,12 +1,12 @@
 # Architecture
 
 ## Vue d'ensemble
-Trois nœuds, deux rôles, une règle : **rien ne s'exécute à distance sans être revérifié.**
+Trois nœuds, trois agents, une règle : **rien ne s'exécute à distance sans être revérifié.**
 
 ```
         ┌──────────────────────────────────────────────┐
-        │  CORE (Win11) — orchestration technique     │
-        │  · Hermes / outils de coordination selon rôle│
+        │  CORE (Win11) — Orchestration (Hermes)      │
+        │  · Cerveau : coordination, Kanban, A2A       │
         │  · revérifie les artefacts                   │
         │  · registre de tâches local historique       │
         └───────┬──────────────────────────────┬───────┘
@@ -14,54 +14,69 @@ Trois nœuds, deux rôles, une règle : **rien ne s'exécute à distance sans ê
                 │  overlay WireGuard           │
         ┌───────▼──────────┐          ┌────────▼─────────┐
         │  EDGE (Ubuntu)   │          │  DC-DELL (WSrv)  │
-        │  builds Linux    │          │  AD / DNS / DHCP │
-        │  services        │          │  1 tâche à la fois│
+        │  · Hermes Worker  │          │  · Hermes Worker  │
+        │  · OpenClaw (Tools)│          │  · Admin AD / DNS  │
+        │  · OpenCode (Dev) │          │  · 1 tâche à la fois│
         └──────────────────┘          └──────────────────┘
 ```
 
-## Plan de contrôle multi-agent — décision 2026-10-19
+## Plan de contrôle multi-agent — Architecture Hermes / OpenClaw / OpenCode
 
-**Statut : baseline conceptuelle verrouillée ; intégration réelle à valider.** Voir [ADR-005 — Gouvernance Paperclip et flotte d’agents](decisions/005-paperclip-agent-orchestration.md).
+**Statut : Baseline verrouillée.** L'orchestration est centralisée via Hermes pour optimiser la consommation de tokens et simplifier le routing.
 
-- **Paperclip CEO** conserve la responsabilité globale de la mission et du résultat.
-- **Un coordinateur Paperclip dédié** est ajouté ou désigné via `paperclip_runner`, après audit des runners déjà présents. Un seul coordinateur opérationnel doit être identifié ; réutiliser un agent existant si possible.
-- **Les agents spécialisés existants** sont invités dans Paperclip en conservant leurs souls/profils. Ne pas réécrire ces profils sans preuve qu’une correction est nécessaire.
-- **Hermes** fournit la délégation/exécution A2A lorsque ses peers, credentials et capacités sont configurés et validés.
-- **OpenCode** est utilisé pour les tâches de développement.
-- **OpenClaw** peut rester un agent invité/spécialisé ; il n’est pas le coordinateur principal dans cette décision.
-- Le coordinateur affecte une tâche à un responsable unique. Chaque tâche doit avoir un résultat attendu, des limites, une preuve de validation et une condition d’arrêt.
-- Paperclip porte l’affectation et l’état des missions ; les services A2A portent l’exécution distribuée. Le registre de tâches historique n’est pas automatiquement le routeur Paperclip.
+- **Hermes** est le **cerveau** : il gère le Kanban, affecte les tâches aux workers et coordonne les flux via A2A.
+- **OpenClaw** est le **runtime d'exécution** : il utilise des plugins et des skills pour interagir avec des outils externes (via Composio, Notion, etc.).
+- **OpenCode** est l'**agent de développement** : spécialisé dans l'écriture de code, les PRs, les reviews et les tests.
 
-### État de preuve
+### Distribution des rôles
 
-Cette décision ne prouve pas que `paperclip_runner` invoque déjà les agents invités, que leurs souls sont chargées ou que les permissions sont correctes. Ces points restent à vérifier en lecture seule, puis avec une mission pilote non destructive. Aucun changement d’infrastructure ne découle de cette ADR.
+| Machine | Hermes | OpenClaw | OpenCode | Usage Principal |
+|---|---|---|---|---|
+| **Core** | ✅ Orchestrateur | ✅ Installé | ✅ Installé | Coordination + Dev local |
+| **Edge** | ✅ Worker | ✅ Principal | ✅ Installé | Exécution Tools + Dev Linux |
+| **DC-DELL** | ✅ Worker | ✅ Installé | ❌ Non installé | Administration AD / DNS |
 
-## Pourquoi pair-à-pair au niveau de l’exécution
+### Flux d'exécution
 
-L’exécution distribuée conserve les services de nœud et les appels authentifiés ; Paperclip devient le plan de contrôle des missions. Ce sont deux couches différentes, pas deux orchestrateurs globaux concurrents.
+1. **Saisie** : L'utilisateur définit une mission dans le Kanban (Core).
+2. **Routing** : Hermes (Core) analyse la tâche et la route vers le worker adapté via A2A.
+3. **Exécution** : 
+    - Si Tool/Plugin $
+ightarrow$ **OpenClaw** (Edge/Core/DC-DELL).
+    - Si Coding $
+ightarrow$ **OpenCode** (Edge/Core).
+4. **Validation** : L'artefact est retourné à Hermes (Core) pour vérification (SHA-256, tests).
 
-Chaque nœud peut exposer son service d’exécution indépendamment. L’orchestrateur technique est un rôle logiciel, pas une propriété matérielle immuable. Les changements de configuration réseau restent soumis à audit et autorisation.
+---
+
+## Pourquoi l'architecture Hermes / OpenClaw / OpenCode
+
+L'utilisation d'une orchestration centralisée via Hermes permet de réduire drastiquement la consommation de tokens en évitant les boucles de coordination redondantes et en utilisant des adaptateurs légers pour l'exécution.
+
+- **Efficacité** : Pas de doublons d'orchestration.
+- **Spécialisation** : OpenClaw pour les outils, OpenCode pour le code.
+- **Scalabilité** : Ajout facile de nouveaux workers Hermes.
 
 ## Couche réseau
 
 | Plan | Adressage | Usage |
 |---|---|---|
 | LAN physique | `192.168.0.0/24` | Services internes, RDP/SMB |
-| Overlay WireGuard | `100.64.0.0/10` | Orchestration, accès distant chiffré |
+| Overlay WireGuard | `100.64.0.0/10` | Orchestration A2A, accès distant chiffré |
 
-L’overlay est le plan de confiance prévu pour l’orchestration. Toute exposition réelle différente, notamment une écoute sur `0.0.0.0`, doit être considérée comme un écart à examiner, et non comme une configuration conforme par défaut.
+L’overlay est le plan de confiance prévu pour l’orchestration. Toute exposition réelle différente, notamment une écoute sur `0.0.0.0`, doit être considérée comme un écart à examiner.
 
 ## Sécurité
 
-- Le service d’orchestration devrait être lié à l’interface overlay uniquement, jamais à `0.0.0.0`, sauf décision documentée et contrôles compensatoires validés.
-- Authentification par clé sur chaque appel ; une clé erronée doit échouer fermé.
-- Les appels et actions doivent être associés à l’identité de l’agent/nœud pour permettre l’audit.
-- Sur le contrôleur de domaine, aucune exécution distante entrante non autorisée : limiter les accès au strict nécessaire.
+- Le service d’orchestration (`api_server:8642`) est lié à l’interface overlay uniquement sur Edge (ufw DENY LAN).
+- Authentification par clé sur chaque appel A2A.
+- Les appels et actions sont associés à l’identité de l’agent/nœud pour permettre l’audit.
+- Sur le contrôleur de domaine, aucune exécution distante entrante non autorisée.
 - Les secrets ne sont jamais écrits dans les logs ou dans Git.
 
 ## Contrainte matérielle assumée
 
-DC-DELL dispose de ressources limitées et ne doit exécuter qu’une tâche à la fois. Cette limite doit être appliquée par un mécanisme de verrouillage/contrôle, pas seulement par discipline opérateur.
+DC-DELL dispose de ressources limitées et ne doit exécuter qu’une tâche à la fois. Cette limite est appliquée via un verrouillage (`check_lock.ps1`).
 
 ## Règle de vérification
 
