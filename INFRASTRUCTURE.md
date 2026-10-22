@@ -25,7 +25,7 @@
 - **Accès admin à DC-DELL :** WinRM (Invoke-Command) fonctionne depuis Core avec les credentials courants, après `Start-Service WinRM` sur Core + `Set-Item WSMan:\localhost\Client\TrustedHosts -Value '100.70.59.28' -Force`. C'est la voie d'administration directe.
 - **Hermes home Core :** `C:\Users\administrator\AppData\Local\hermes` (HERMES_HOME). **DC-DELL :** `C:\Users\Administrator\AppData\Local\hermes`.
 - **Skills DC-DELL** vivent dans `AppData\Local\hermes\skills\` (PAS dans `~/.hermes\skills\` qui n'est pas scanné).
-- **Rôles :** Core = orchestrateur (Hermes), Edge = worker Linux + services (Paperclip, Forgejo, OpenClaw), DC-DELL = contrôleur de domaine AD + DNS/DHCP.
+- **Rôles :** Core = orchestrateur (Hermes), Edge = worker Linux + services (Forgejo, OpenClaw), DC-DELL = contrôleur de domaine AD + DNS/DHCP.
 
 ### Stockage Core (post-réinstallation Windows 11, 2026-10-15)
 | Disque | Taille | Libre |
@@ -69,7 +69,6 @@
 ### Services transverses
 - **api_server Hermes :** port 8642 sur les 3 machines (peer-to-peer)
 - **OpenClaw gateway :** Edge:18789
-- **Paperclip :** Edge:3100 (mode authenticated/private)
 - **Forgejo :** Edge:3000 (git self-hosted, source de vérité)
 
 ---
@@ -93,8 +92,6 @@
 
 | Service | Endpoint | Statut | Notes |
 |---|---|---|---|
-| Paperclip (LAN) | http://192.168.0.30:3100/api/health | ✅ 200 | Fonctionnel |
-| Paperclip (Tailscale) | http://100.112.255.75:3100/ | ❌ 403 | Mode authenticated/private — pas accessible via overlay |
 | Hermes Core | http://127.0.0.1:8642/health | ✅ 200 | v0.22.2 |
 | Hermes Core /v1/models | http://127.0.0.1:8642/v1/models | 🔒 401 | Sans auth (attendu) |
 | Hermes Edge (LAN) | http://192.168.0.30:8642/health | ❌ TIMEOUT | Non joignable depuis Core via LAN |
@@ -131,8 +128,7 @@
 | 2 | Disques Core | C:512, D:320, E:320(Ventoy), F:1To, I:320, G:14Go | C:297, D:298, F:932, H:476, I:297 (pas de E:/G:) | ❌ À corriger |
 | 3 | Hermes écoute | 0.0.0.0:8642 (écart) | overlay uniquement, jamais 0.0.0.0 | ⚠️ Écart connu |
 | 4 | Orchestration | "Hermes seul orchestre, pas de cross-machine" | Pair-à-pair, api_server:8642 sur chaque nœud | ❌ À réconcilier |
-| 5 | Paperclip Tailscale | Accès fonctionnel (100.112.255.75:3100) | 403 Forbidden | ❌ Inaccessible |
-| 6 | Hermes Edge | v0.21.5 accessible | Timeout depuis Core | ❌ Inaccessible |
+| 5 | Hermes Edge | v0.21.5 accessible | Timeout depuis Core | ❌ Inaccessible |
 | 7 | DC-DELL rôles | Liste partielle | +FileAndStorage, FS-FileServer, RSAT, Windows-Defender | 🟡 Mineur |
 | 8 | Services conteneurisés | Non documentés | 18 conteneurs documentés | 🟡 À ajouter |
 | 9 | MCP Edge | Non documentés | mcp-global-utils:8080, mcp-gitops:8081 | 🟡 À ajouter |
