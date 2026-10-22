@@ -8,7 +8,16 @@ category: devops
 
 Cette skill définit la discipline administrative du TwisterLab. L'objectif est de transformer chaque action technique en une trace vérifiable.
 
-## 1. Template : Fiche d'Incident
+## 1. Procédure de Versionnement
+Toute modification significative (config, script, infra) doit suivre ce flux :
+1. **Identification** : Isoler le changement logique (un seul changement par commit).
+2. **Exécution** : Appliquer la modification.
+3. **Validation** : Mesurer le résultat et calculer la preuve (SHA-256, log de succès) depuis un nœud tiers.
+4. **Documentation** : Mettre à jour le `CHANGELOG.md` et créer une fiche d'incident si nécessaire.
+5. **Commit** : `git add` $\rightarrow$ `git commit -m "type: description"` $\rightarrow$ `git push`.
+6. **Clôture** : Fermer la tâche Kanban. Une tâche n'est DONE que quand elle est documentée et commitée.
+
+## 2. Template : Fiche d'Incident
 Fichier : `docs/incidents/YYYY-MM-DD-titre-court.md`
 
 ```markdown
@@ -44,7 +53,7 @@ Date : YYYY-MM-DD | Statut : [Ouvert / Résolu] | Priorité : [Basse / Moyenne /
 [Règle ou réflexe à intégrer pour éviter la récurrence]
 ```
 
-## 2. Structure du CHANGELOG.md
+## 3. Structure du CHANGELOG.md
 Format : Chronologique inverse.
 
 ```markdown
@@ -59,13 +68,18 @@ Format : Chronologique inverse.
 - [Description du composant retiré]
 ```
 
-## 3. Checklist Pré-Commit (Zéro Secret)
+## 4. Règles et Discipline
+### Checklist Pré-Commit (Zéro Secret)
 Avant chaque `git commit`, l'agent DOIT valider :
 - [ ] **Scan de secrets** : Aucun token, password, API key présent dans les fichiers modifiés.
 - [ ] **Nettoyage Logs** : Les extraits de logs ne contiennent pas d'IPs publiques sensibles ou de headers d'auth.
 - [ ] **Cohérence** : Le commit correspond à un seul changement logique.
 - [ ] **Preuve** : L'attestation de succès est externe à l'artefact.
 
-## 4. Gestion de la Mémoire
+### Gestion de la Mémoire Durable
 - **INTERDICTION STRICTE** : Aucune suppression ou modification d'entrée de mémoire durable sans la validation explicite de l'Utilisateur.
 - En cas de saturation de la mémoire, l'agent doit signaler l'état et proposer une consolidation. L'Utilisateur tranche.
+
+### Le Paradoxe du Hash ( la doctrine )
+- ** la règle ** : « Toute preuve interne est une narration. Seule l'attestation externe est une mesure. »
+- **Pitfall** : Ne jamais inscrire un hash de commit ou un SHA-256 d'artefact à l'intérieur de l'artefact lui-même. L'attestation doit vivre dans un manifeste externe (Kanban, Log, CI).
