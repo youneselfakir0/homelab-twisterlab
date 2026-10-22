@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: #eee; display: flex; justify-content: center; padding: 40px; }
+        .container { max-width: 900px; width: 100%; }
+        .step { background: #2d2d2d; border: 1px solid #444; border-radius: 12px; padding: 20px; margin-bottom: 20px; position: relative; transition: transform 0.2s; }
+        .step:hover { transform: translateX(10px); border-color: #007acc; }
+        .step-num { position: absolute; left: -40px; top: 10px; background: #007acc; color: white; width: 30px; height: 30px; border-radius: 50%; text-align: center; line-height: 30px; font-weight: bold; }
+        .agent { font-weight: bold; color: #4db8ff; }
+        .action { color: #ffca28; font-style: italic; }
+        .result { background: #111; padding: 10px; border-radius: 6px; font-family: 'Consolas', monospace; font-size: 0.9em; margin-top: 10px; color: #aaffaa; border-left: 4px solid #007acc; }
+        h1 { text-align: center; color: #fff; margin-bottom: 40px; }
+        .arrow { text-align: center; font-size: 24px; color: #666; margin: -10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Workflow Proof: T-DISK-MONITOR</h1>
+        
+        <div class="step">
+            <div class="step-num">1</div>
+            <span class="agent">Hermes (Core)</span> <span class="action">crée la tâche Kanban</span><br>
+            "T-DISK-MONITOR : Monitoring Disque Edge"
+        </div>
+        <div class="arrow">⬇️</div>
+        
+        <div class="step">
+            <div class="step-num">2</div>
+            <span class="agent">OpenClaw (Edge)</span> <span class="action">analyse le système</span><br>
+            <div class="result">Disque racine / : 81% utilisé (ALERTE)</div>
+        </div>
+        <div class="arrow">⬇️</div>
+        
+        <div class="step">
+            <div class="step-num">3</div>
+            <span class="agent">OpenCode (Core)</span> <span class="action">génère le script Python</span><br>
+            <div class="result">Created: scripts/monitor_disk.py (using shutil)</div>
+        </div>
+        <div class="arrow">⬇️</div>
+        
+        <div class="step">
+            <div class="step-num">4</div>
+            <span class="agent">Hermes (Core)</span> <span class="action">pousse sur GitHub</span><br>
+            <div class="result">Git Push -> Commit c82fc43 ✅</div>
+        </div>
+    </div>
+</body>
+</html>
