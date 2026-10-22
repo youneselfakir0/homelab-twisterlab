@@ -156,7 +156,53 @@ AD-Domain-Services, DHCP, DNS, FileAndStorage-Services, File-Services, FS-FileSe
 
 ---
 
-## 9. Accès SSH (configuré 2026-10-21)
+## 9. Rôles des agents par machine
+
+### Matrice de responsabilité
+
+| Machine | **Hermes** (orchestration) | **OpenClaw** (agent runtime) | **OpenCode** (coding agent) |
+|---|---|---|---|
+| **Paperclip** (Core, 100.92.101.28) | **Orchestrateur principal**<br>• `api_server:8642` (bind 0.0.0.0)<br>• MCP servers: Composio (HTTP `connect.composio.dev/mcp`), Figma, PostHog<br>• A2A peers: Edge, DC-DELL<br>• Dispatch Kanban + délégation A2A | ❌ Pas installé | ❌ Pas installé |
+| **Edge** (Ubuntu, 100.112.255.75) | **Worker Hermes**<br>• `api_server:8642` (Tailscale only, ufw DENY LAN)<br>• Reçoit tâches via A2A<br>• 18 conteneurs Docker | **Runtime agents principal**<br>• Gateway: `192.168.0.30:18789` / Tailscale `100.112.255.75:18789`<br>• Plugin **Composio** installé (`.openclaw/extensions/composio/`)<br>• Composio CLI 0.5.0, connecté `youneselfafir0@gmail.com`<br>• 500+ tools via Composio (GitHub, Gmail, Slack, Notion, etc.)<br>• Skills, conversations, hooks | ❌ Pas installé |
+| **DC-DELL** (Win Server, 100.70.59.28) | **Worker Hermes**<br>• `api_server:8642`<br>• Skill `hermes-peer-a2a` chargée (enabled)<br>• 1 tâche à la fois (8 Go RAM, script `check_lock.ps1`) | ❌ Pas installé | **Coding agent installé**<br>• `opencode` CLI dans PATH<br>• Autonome : écriture code, PR, review, tests<br>• GitHub API via token |
+
+### Distinction fonctionnelle
+
+| Agent | Rôle | Ce qu'il **ne fait pas** |
+|---|---|---|
+| **Hermes** | Orchestration, routing A2A, Kanban dispatch, agrégation preuves | N'exécute **pas** de code, n'appelle **pas** d'outils externes |
+| **OpenClaw** | Exécution plugins/skills (Composio, Notion, etc.), conversations, hooks | Ne route **pas** vers d'autres machines, ne gère **pas** le Kanban |
+| **OpenCode** | Coding autonome : features, PRs, review, tests | Ne connaît **pas** le lab, ne parle **pas** A2A |
+
+### Flux type d'exécution
+
+```
+User → Paperclip (Hermes orchestrateur)
+        │
+        ├─→ Edge (Hermes worker) → OpenClaw (exécution plugins/skills Composio)
+        │
+        └─→ DC-DELL (Hermes worker) → OpenCode (coding tasks, GitHub PRs)
+```
+
+### Preuves d'installation Edge (Ubuntu)
+
+```bash
+# Hermes worker
+hermes --version          # → 0.21.5
+curl 100.112.255.75:8642/health
+
+# OpenClaw + Composio plugin
+ls ~/.openclaw/extensions/composio/  # → openclaw.plugin.json, dist/index.js, skills/
+composio --version         # → 0.5.0
+composio whoami            # → youneselfafir0@gmail.com
+
+# OpenCode
+which opencode             # → NOT FOUND
+```
+
+---
+
+## 10. Accès SSH (configuré 2026-10-21)
 
 ### Configuration Core (`~/.ssh/config`)
 
