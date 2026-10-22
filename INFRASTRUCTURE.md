@@ -85,6 +85,7 @@
 7. **DC-DELL : 1 tâche à la fois** (8 Go RAM, ~1,5 Go libres). Script check_lock.ps1.
 8. **Hermes seul orchestre** — pas d'appels agents cross-machine sans dispatch explicite.
 9. **KANBAN = registre du plan, PAS le routeur.**
+10. **Alignement Administratif** — Aucun travail technique n'est considéré comme terminé tant que la carte Kanban correspondante n'est pas formellement clôturée. Un commit sans ticket fermé est une erreur de process.
 
 ---
 
