@@ -10,7 +10,7 @@
 
 | Nœud | Rôle | OS | CPU | RAM | IP LAN | IP Tailscale | Ports clés |
 |---|---|---|---|---|---|---|---|
-| **Core** | Orchestrateur | Windows 11 Pro Insider 26340 | Xeon E3-1225 v5 (4c/4t) | 32 Go (3,8 Go libres) | 192.168.0.12 | 100.92.101.28 | 22, 139, 3389, 5357, 8642 |
+| **Core** | Orchestrateur + **serveur mail** | Windows 11 Pro Insider 26340 | Xeon E3-1225 v5 (4c/4t) | 32 Go (3,8 Go libres) | 192.168.0.12 | 100.92.101.28 | 22, 139, 3389, 5357, 8642, **25, 143, 587** |
 | **Edge** | Worker Linux + services | Ubuntu 24.04.5 LTS (kernel 6.8) | i5-6600K (4c/4t) | 15 Go (7,7 Go dispo) | 192.168.0.30 | 100.112.255.75 | 22, 2222, 3000, 3001, 5000, 5433, 5434, 5678, 6380, 6381, 8055, 8080, 8081, 8088, 8642, 8644, 8888, 9090, 9093, 9119, 18789, 21115-21117 |
 | **DC-DELL** | Contrôleur de domaine | Windows Server 2025 (29667) | i5-2400 (4c/4t) | 8 Go (1,8 Go libres) | 192.168.0.100 | 100.70.59.28 | 389, 3389 |
 
@@ -71,6 +71,26 @@
 - **OpenClaw gateway :** Edge:18789
 - **Forgejo :** Edge:3000 (git self-hosted, source de vérité)
 
+### Service de messagerie (Core) — 2026-10-24
+
+| Élément | Valeur |
+|---|---|
+| Logiciel | **hMailServer 5.7.1 build 3116** (officiel, x64) |
+| Service | `hMailServer` — Running, Auto, compte `NT SERVICE\hMailServer` |
+| Installation | `C:\Program Files\hMailServer` |
+| Données | `C:\ProgramData\hMailServer` (base interne + certificats + logs) |
+| Nom | `mail.twisterlab.local` (A → 192.168.0.12, MX pref 10) |
+| Protocoles | SMTP **25**, Submission **587** (STARTTLS optionnel), IMAP **143** |
+| Désactivé | POP3 (110) — non demandé |
+| Auth | **Active Directory** (par compte : `IsAD` + `ADDomain=twisterlab.local` + `ADUsername`) via `LogonUser()` |
+| Comptes | `administrator@`, `alex@`, `devuser@`, `maya@`, `admin@`, `test@` (tous `@twisterlab.local`) |
+| Anti-relais | `SMTPRelayer` vide, 0 route, plages de sécurité (LAN prio 40 > My computer 30 > Internet 10), auth SMTP requise |
+| Blocage réseau | Pare-feu : entrant 25/143/587 (profil Domain) ; **sortant 25 bloqué** pour `hMailServer.exe` |
+| Rapport | `docs/messagerie/2026-10-24-messagerie-interne.md` |
+| Scripts | `scripts/messagerie/` |
+
+> **Le serveur mail est sur Core (membre du domaine), pas sur DC-DELL** : DC-DELL reste contrôleur AD/DNS/DHCP avec une charge limitée (1 tâche à la fois). Raison détaillée dans le rapport.
+
 ---
 
 ## 3. Règles d'orchestration
@@ -104,6 +124,11 @@
 | Grafana /api/health | http://192.168.0.30:3001/api/health | ✅ 200 | DB ok, v13.2.2 |
 | Prometheus | http://192.168.0.30:9090/ | (non testé) | |
 | n8n | http://192.168.0.30:5678/ | (non testé) | |
+| **Mail SMTP (25)** | `mail.twisterlab.local:25` | ✅ 220 | `220 mail.twisterlab.local ESMTP` (bannière) |
+| **Mail Submission (587)** | `mail.twisterlab.local:587` | ✅ 220 | `AUTH LOGIN PLAIN` annoncé |
+| **Mail IMAP (143)** | `mail.twisterlab.local:143` | ✅ | `* OK IMAPrev1` |
+| **DNS A mail** | `nslookup mail.twisterlab.local` | ✅ 192.168.0.12 | |
+| **DNS MX** | `nslookup -type=MX twisterlab.local` | ✅ | pref 10 → `mail.twisterlab.local` |
 
 ---
 
